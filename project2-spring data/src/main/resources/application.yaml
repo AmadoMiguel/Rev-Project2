@@ -1,0 +1,13 @@
+
+server:
+  port: 8080
+  
+spring:
+  application:
+    name: my-app
+  datasource:    username: postgres
+    password: password
+    url: jdbc:postgresql://rev-postgres.csq3tfdhr3wr.us-east-2.rds.amazonaws.com:5432/postgres 
+  jpa:
+    hibernate:
+      ddl-auto: update

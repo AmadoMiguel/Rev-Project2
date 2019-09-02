@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.revature</groupId>
+	<artifactId>spring-boot-data-jpa</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.1.BUILD-SNAPSHOT</version>
+	</parent>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-releasetrain</artifactId>
+				<version>Lovelace-SR5</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-api</artifactId>
+    		<version>0.10.7</version>
+		</dependency>
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-impl</artifactId>
+    		<version>0.10.7</version>
+    		<scope>runtime</scope>
+		</dependency>
+		<dependency>
+    		<groupId>io.jsonwebtoken</groupId>
+    		<artifactId>jjwt-jackson</artifactId>
+    		<version>0.10.7</version>
+    		<scope>runtime</scope>
+		</dependency>
+		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-web</artifactId>   
+		</dependency>
+		<dependency>      
+			<groupId>org.springframework.security</groupId>
+    		<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>javax.activation</groupId>
+    		<artifactId>activation</artifactId>
+    		<version>1.1.1</version>
+		</dependency>
+  		<dependency>
+    		<groupId>javax.xml.bind</groupId>
+    		<artifactId>jaxb-api</artifactId>
+    		<version>2.2.11</version>
+		</dependency>
+		<dependency>
+    		<groupId>com.sun.xml.bind</groupId>
+    		<artifactId>jaxb-core</artifactId>
+    		<version>2.2.11</version>
+		</dependency>
+		<dependency>
+    		<groupId>com.sun.xml.bind</groupId>
+    		<artifactId>jaxb-impl</artifactId>
+    		<version>2.2.11</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-devtools -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<!-- Common DBCP2 connection pool -->
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-dbcp2 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-dbcp2</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.2.5</version>
+		</dependency>
+
+
+
+
+
+
+
+		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+	</dependencies>
+
+	<!-- Package as an executable jar -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!-- Add Spring repositories -->
+	<!-- (you don't need this if you are using a .RELEASE version) -->
+	<repositories>
+		<repository>
+			<id>spring-snapshots</id>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-milestones</id>
+			<url>https://repo.spring.io/milestone</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-snapshots</id>
+			<url>https://repo.spring.io/snapshot</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<url>https://repo.spring.io/milestone</url>
+		</pluginRepository>
+	</pluginRepositories>
+</project>

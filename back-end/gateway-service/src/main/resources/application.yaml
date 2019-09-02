@@ -1,11 +1,21 @@
 spring:
     application:
-      name:
-        zuul
+      name: gateway-server
 
 zuul:
   routes:
-    user-service: /users/**
-    expenses-service: /expenses/**
-    budgets-service: /budgets/**
-    incomes-service: /incomes/**
+    users: 
+      path: /user-service/**
+      url: http://localhost:8090/
+    expenses: 
+      path: /expense-service/**
+      url: http://localhost:8091
+    budgets: 
+      path: /budget-service/**
+      url: http://localhost:8092
+    incomes: 
+      path: /income-service/**
+      url: http://localhost:8093
+  
+server:
+  port: 8765

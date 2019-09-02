@@ -5,9 +5,9 @@ spring:
   datasource:    
     driverClassName: org.postgresql.Driver
     initialization-mode: NEVER
-    username: postgres
-    password: maadpostgres
-    url: jdbc:postgresql://localhost:5432/budgy
+    username: ${BUDGY_DB_USER}
+    password: ${BUDGY_DB_PASS}
+    url: ${BUDGY_DB_URL}
     
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

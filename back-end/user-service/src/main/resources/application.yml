@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: user-service
+    
+  datasource:    
+    driverClassName: org.postgresql.Driver
+    initialization-mode: NEVER
+    username: postgres
+    password: maadpostgres
+    url: jdbc:postgresql://localhost:5432/budgy
+    
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: users
+    show-sql: false  
+    
+  cloud:
+    config:
+      fail-fast: true
+      discovery.enabled: false
+      
+eureka:
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+
+user-service:
+  ribbon:
+    listOfServers: http://localhost:8765/user-service/
+  
+server:
+  port: 8090

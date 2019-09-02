@@ -1,0 +1,11 @@
+spring:
+    application:
+      name:
+        zuul
+
+zuul:
+  routes:
+    user-service: /users/**
+    expenses-service: /expenses/**
+    budgets-service: /budgets/**
+    incomes-service: /incomes/**

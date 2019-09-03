@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: income-service
+    
+  datasource:    
+    driverClassName: org.postgresql.Driver
+    initialization-mode: NEVER
+    username: ${BUDGY_DB_USER}
+    password: ${BUDGY_DB_PASS}
+    url: ${BUDGY_DB_URL}
+    
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: incomes
+    show-sql: false  
+    
+  cloud:
+    config:
+      fail-fast: true
+      discovery.enabled: false
+      
+eureka:
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+
+user-service:
+  ribbon:
+    listOfServers: http://localhost:8765/income-service/
+  
+server:
+  port: 8093

@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @SpringBootApplication
 @EnableFeignClients
-public class Application {
+public class BudgetServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(BudgetServiceApplication.class, args);
 	}
 
 }

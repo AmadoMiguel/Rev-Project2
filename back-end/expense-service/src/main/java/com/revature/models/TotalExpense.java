@@ -11,4 +11,9 @@ public class TotalExpense {
 		this.total = total;
 	}
 
+	@Override
+	public String toString() {
+		return "TotalExpense [month=" + month + ", total=" + total + "]";
+	}
+
 }

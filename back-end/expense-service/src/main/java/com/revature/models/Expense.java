@@ -1,5 +1,6 @@
 package com.revature.models;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -12,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "expenses")
@@ -37,8 +40,7 @@ public class Expense {
 	private ExpenseType expenseType;
 
 //	Other fields
-	@Temporal(TemporalType.DATE)
-	Date date;
+	LocalDate date;
 	
 	@Column(name = "description")
 	private String description;
@@ -77,11 +79,11 @@ public class Expense {
 		this.expenseType = expenseType;
 	}
 
-	public Date getDate() {
+	public LocalDate getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		this.date = date;
 	}
 
@@ -101,7 +103,7 @@ public class Expense {
 		this.amount = amount;
 	}
 
-	public Expense(int id, int userId, ExpenseType expenseType, Date date, String description, double amount) {
+	public Expense(int id, int userId, ExpenseType expenseType, LocalDate date, String description, double amount) {
 		super();
 		this.id = id;
 		this.userId = userId;

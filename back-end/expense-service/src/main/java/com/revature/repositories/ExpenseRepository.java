@@ -1,5 +1,6 @@
 package com.revature.repositories;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,6 @@ public interface ExpenseRepository<P> extends JpaRepository<Expense, Integer> {
 
 	List<Expense> findByUserIdOrderByIdDesc(int userId);
 
-	List<Expense> findByUserIdAndDateBetween(int userId, Date prevMonthDate, Date nextMonthDate);
-
+	List<Expense> findByUserIdAndDateBetween(int userId, LocalDate currMonthStart, LocalDate nextMonthStart);
+	
 }

@@ -1,0 +1,12 @@
+origins:
+  - http://localhost:3000
+headers:
+  - content-type
+  - authorization
+methods:
+  - GET
+  - OPTIONS
+  - POST
+  - PUT
+  - PATCH
+  - DELETE

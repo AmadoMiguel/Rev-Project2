@@ -115,7 +115,7 @@ public class ExpensesServicesTest {
 											   aYearAgoToday.plusMonths(1), 
 											   "Chritsmas tree", 80);
 		Expense fakeYearExpense2 = new Expense(2, fakeUserId, null, 
-				   							   today.plusMonths(1), 
+				   							   aYearAgoToday.plusMonths(1), 
 				   							   "Christmas dinner", 100);
 		fakeYearExpenses.add(fakeYearExpense1);
 		fakeYearExpenses.add(fakeYearExpense2);
@@ -150,6 +150,15 @@ public class ExpensesServicesTest {
 		assertThat(expenseServicesMock.addExpense(fakeExpense)).isEqualTo(true);
 	}
 	
-	
+	@Test
+	public void updateExpenseTest() {
+//		Create fake expense to be updated
+		Expense fakeExpense = new Expense(1, 1, null, LocalDate.now().withDayOfMonth(2), 
+				   						  "Burger", 60);
+//		Define expectation
+		when(expenseRepositoryMock.save(fakeExpense)).thenReturn(fakeExpense);
+//		Create assertion
+		assertThat(expenseServicesMock.updateExpense(fakeExpense)).isEqualTo(true);
+	}	
 	
 }

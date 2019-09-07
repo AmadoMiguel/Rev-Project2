@@ -97,14 +97,10 @@ public class ExpenseController {
 		return expenseService.updateExpense(expense) ? HttpStatus.ACCEPTED : HttpStatus.BAD_REQUEST;
 	}
 
-	@RequestMapping(value = "/user/expense/{id}", method = RequestMethod.DELETE)
+	@RequestMapping(value = "/user/{id}", method = RequestMethod.DELETE)
 	public HttpStatus deleteAllExpenses(@PathVariable int id) {
 		expenseService.deleteByUserId(id);
 		return HttpStatus.NO_CONTENT;
 	}
 
-//	@RequestMapping(value = "/expense", method = RequestMethod.GET)
-//	public List<Expense> getAll() {
-//		return ExpenseService.getAllExpenses();
-//	}
 }

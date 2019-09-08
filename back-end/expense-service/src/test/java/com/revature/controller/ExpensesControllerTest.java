@@ -11,9 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,9 +38,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.revature.ExpenseServiceApplication;
 import com.revature.models.Expense;
 import com.revature.models.ExpenseType;
+import com.revature.models.TotalExpense;
 import com.revature.repositories.ExpenseRepository;
 import com.revature.repositories.ExpenseTypeRepository;
 import com.revature.services.ExpenseService;
@@ -59,6 +63,8 @@ public class ExpensesControllerTest {
 //	To handle json format conversion from/to string
 	ObjectMapper objectMapper = new ObjectMapper();
 	
+	Gson gson = new Gson();
+	
 //	Begin tests
 	@Test
 	 public void getExpensesByUserIdTest() throws Exception {
@@ -76,7 +82,6 @@ public class ExpensesControllerTest {
 //		Check mvc test
 		mockMvc.perform(MockMvcRequestBuilders
 				.get("/expense/user/{userId}",1))
-				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(content()
 						.string(containsString("\"description\":\"Some expense\"")));
@@ -98,10 +103,29 @@ public class ExpensesControllerTest {
 //		Perform mvc test
 		mockMvc.perform(MockMvcRequestBuilders
 				.get("/expense/user/{userId}/monthly",1))
-				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(content()
 						.string(containsString("\"description\":\"Expense1\"")));
+	}
+	
+	@Test
+	public void getPastYearExpensesTest() throws Exception {
+//		Create fake list of expenses
+		List<TotalExpense> fakeTotalExpenses = new ArrayList<TotalExpense>();
+//		Add fake expenses to the list
+		TotalExpense fExp1 = new TotalExpense("January", 420.5);
+		TotalExpense fExp2 = new TotalExpense("September", 580.23);
+		fakeTotalExpenses.add(fExp1);
+		fakeTotalExpenses.add(fExp2);
+//		Define what the expense service method should return
+		when(expenseServiceMock.findTotalMonthlyExpensesForYearByUserId(1))
+			.thenReturn(fakeTotalExpenses);
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.get("/expense/user/{userId}/yearly",1))
+				.andExpect(status().isOk())
+				.andExpect(content()
+						.string(containsString("\"month\":\"January\"")));
 	}
 	
 	@Test
@@ -120,7 +144,6 @@ public class ExpensesControllerTest {
 //		Perform mvc test
 		mockMvc.perform(MockMvcRequestBuilders
 				.get("/expense/types"))
-				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(content()
 						.string(containsString("\"type\":\"Bills\"")));
@@ -131,12 +154,36 @@ public class ExpensesControllerTest {
 //		Create fake expense to be deleted
 		Expense fakeExpense = new Expense(1, 1, null, 
 										  LocalDate.now().minusMonths(3), "Sprite", 3);
+//		Perform mvc test
 		mockMvc.perform(MockMvcRequestBuilders
 				.delete("/expense/{id}",fakeExpense.getId()))
-				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(content()
 						.string(containsString("NO_CONTENT")));
+	}
+	
+	@Test
+	public void insertExpenseTest() throws Exception {
+//		Create fake expense to be added
+		ExpenseType fakeExpenseType = new ExpenseType(1, "Bills");
+		LocalDate date = LocalDate.now().plusMonths(1).withDayOfMonth(10);
+		Expense fakeExpense = new Expense(1, 1, fakeExpenseType, 
+				  				          date, "Meal", 8.5);
+//		Parse the local date object in the string and convert it to format
+//		YYYY-MM-DD to avoid bad request issues during test
+		String expenseAsString = objectMapper.writeValueAsString(fakeExpense);
+		JSONObject expenseJson = new JSONObject(expenseAsString);
+		expenseJson.put
+			("date", ""+date.getYear()+"-"+date.getMonthValue()+"-"+date.getDayOfMonth());
+		System.out.println(expenseJson);
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.post("/expense")
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON)
+				.content(expenseJson.toString()))
+				.andDo(print())
+				.andExpect(status().isOk());
 	}
 	
 	

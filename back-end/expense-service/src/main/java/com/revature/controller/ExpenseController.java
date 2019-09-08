@@ -88,7 +88,6 @@ public class ExpenseController {
 //	Endpoint for creating a new expense
 	@RequestMapping(value = "", method = RequestMethod.POST)
 	public Expense insertExpense(@RequestBody Expense expense) {
-		System.out.println(expense);
 		return expenseService.addExpense(expense) ? expense : null;
 	}
 

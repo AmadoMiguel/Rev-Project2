@@ -1,53 +1,32 @@
 package com.revature.controller;
 
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.revature.ExpenseServiceApplication;
 import com.revature.models.Expense;
 import com.revature.models.ExpenseType;
 import com.revature.models.TotalExpense;
-import com.revature.repositories.ExpenseRepository;
-import com.revature.repositories.ExpenseTypeRepository;
 import com.revature.services.ExpenseService;
 
-import feign.Response;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(ExpenseController.class)
@@ -62,8 +41,6 @@ public class ExpensesControllerTest {
 	
 //	To handle json format conversion from/to string
 	ObjectMapper objectMapper = new ObjectMapper();
-	
-	Gson gson = new Gson();
 	
 //	Begin tests
 	@Test
@@ -175,17 +152,48 @@ public class ExpensesControllerTest {
 		JSONObject expenseJson = new JSONObject(expenseAsString);
 		expenseJson.put
 			("date", ""+date.getYear()+"-"+date.getMonthValue()+"-"+date.getDayOfMonth());
-		System.out.println(expenseJson);
+//		when(expenseServiceMock.updateExpense(fakeExpense)).thenReturn(true);
 //		Perform mvc test
 		mockMvc.perform(MockMvcRequestBuilders
 				.post("/expense")
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+				.accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
 				.content(expenseJson.toString()))
 				.andDo(print())
 				.andExpect(status().isOk());
 	}
 	
+	@Test
+	public void updateExpenseTest() throws Exception {
+//		Create expense to be updated
+		ExpenseType fakeExpenseType = new ExpenseType(2, "Food");
+		LocalDate date = LocalDate.parse("2019-10-10");
+		Expense fakeExpense = new Expense(1, 3, fakeExpenseType, 
+				  				          date, "Lunch", 0.0);
+//		Convert to string
+		String expenseAsString = objectMapper.writeValueAsString(fakeExpense);
+		JSONObject expenseJson = new JSONObject(expenseAsString);
+		expenseJson.put
+		("date", ""+date.getYear()+"-"+date.getMonthValue()+"-"+date.getDayOfMonth());
+//		when(expenseServiceMock.updateExpense(fakeExpense)).thenReturn(true);
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.put("/expense",fakeExpense)
+				.contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+				.content(expenseJson.toString())
+				.accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+				.andExpect(status().isOk());
+	}
 	
-	
+	@Test
+	public void deleteAllUserExpensesTest() throws Exception {
+//		Create fake user id
+		int fakeUserId = (int)Math.random()*100;
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.delete("/expense/user/{id}",fakeUserId))
+				.andExpect(status().isOk())
+				.andExpect(content()
+						.string(containsString("NO_CONTENT")));
+	}
 }

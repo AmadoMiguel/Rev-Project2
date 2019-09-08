@@ -79,7 +79,66 @@ public class ExpensesControllerTest {
 				.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(content()
-						.string(containsString("\"id\":1")));
+						.string(containsString("\"description\":\"Some expense\"")));
 	 }
+	
+	@Test
+	public void getThisMonthExpensesTest() throws Exception {
+//		Create fake list of expenses
+		List<Expense> fakeExpenses = new ArrayList<Expense>();
+//		Add expenses to the list
+		Expense fExp1 = new Expense(1, 1, null, 
+									LocalDate.now(), "Expense1", 15.34);
+		Expense fExp2 = new Expense(2, 1, null, 
+									LocalDate.now(), "Expense2", 25.81);
+		fakeExpenses.add(fExp1);
+		fakeExpenses.add(fExp2);
+//		Define expectation for the expense service method
+		when(expenseServiceMock.findMonthlyExpensesByUserId(1)).thenReturn(fakeExpenses);
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.get("/expense/user/{userId}/monthly",1))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(content()
+						.string(containsString("\"description\":\"Expense1\"")));
+	}
+	
+	@Test
+	public void findExpenseTypesTest() throws Exception {
+//		Create fake list of expense types
+		List<ExpenseType> fakeExpenseTypes = new ArrayList<ExpenseType>();
+//		Add fake expense type objects to the list
+		ExpenseType fExpTyp1 = new ExpenseType(1, "Bills");
+		ExpenseType fExpTyp2 = new ExpenseType(2, "Food");
+		ExpenseType fExpTyp3 = new ExpenseType(3, "Entertainment");
+		fakeExpenseTypes.add(fExpTyp1);
+		fakeExpenseTypes.add(fExpTyp2);
+		fakeExpenseTypes.add(fExpTyp3);
+//		Set expectation for expense service method
+		when(expenseServiceMock.findAllExpenseTypes()).thenReturn(fakeExpenseTypes);
+//		Perform mvc test
+		mockMvc.perform(MockMvcRequestBuilders
+				.get("/expense/types"))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(content()
+						.string(containsString("\"type\":\"Bills\"")));
+	}
+	
+	@Test
+	public void deleteExpenseById() throws Exception {
+//		Create fake expense to be deleted
+		Expense fakeExpense = new Expense(1, 1, null, 
+										  LocalDate.now().minusMonths(3), "Sprite", 3);
+		mockMvc.perform(MockMvcRequestBuilders
+				.delete("/expense/{id}",fakeExpense.getId()))
+				.andDo(print())
+				.andExpect(status().isOk())
+				.andExpect(content()
+						.string(containsString("NO_CONTENT")));
+	}
+	
+	
 	
 }

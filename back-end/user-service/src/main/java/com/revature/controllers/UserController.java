@@ -80,7 +80,7 @@ public class UserController {
 	public ResponseEntity<Object> updateUser(@RequestHeader("Authorization") String token, @RequestBody User user) {
 		if (!JWTService.checkAuthByID(token, user.getId()))
 			return new ResponseEntity<>("You are not authorized for this operation!", HttpStatus.UNAUTHORIZED);
-		return userService.updateUser(user) ? new ResponseEntity<>(HttpStatus.OK)
+		return userService.updateUser(user) ? new ResponseEntity<>("INFO UPDATED",HttpStatus.OK)
 				: new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 	}

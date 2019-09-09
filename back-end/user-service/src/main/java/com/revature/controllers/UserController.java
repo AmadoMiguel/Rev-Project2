@@ -33,8 +33,11 @@ public class UserController {
 
 	@PostMapping("/register")
 	public ResponseEntity<Object> userRegister(@RequestBody User userForm) {
-		userService.registerUser(userForm);
-		return new ResponseEntity<>(HttpStatus.CREATED);
+		if (userService.registerUser(userForm))
+			return new ResponseEntity<>("USER CREATED",HttpStatus.CREATED);
+		else {
+			return new ResponseEntity<>("INCORRECT USER INFO",HttpStatus.NOT_ACCEPTABLE);
+		}
 	}
 
 	@PostMapping("/register/verifyUser")
@@ -51,7 +54,7 @@ public class UserController {
 		if (!JWTService.checkAuthByUsername(token, user.getUsername()))
 			return new ResponseEntity<>("You are not authorized for this operation!", HttpStatus.UNAUTHORIZED);
 		if (userService.checkPw(user.getUsername(), user.getPassword()))
-			return new ResponseEntity<>(HttpStatus.OK);
+			return new ResponseEntity<>("PASSWORD CORRECT",HttpStatus.OK);
 		return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 	}
 

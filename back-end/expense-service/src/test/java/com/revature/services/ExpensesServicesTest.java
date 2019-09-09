@@ -5,8 +5,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -19,7 +17,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import com.revature.models.Expense;
 import com.revature.models.ExpenseType;
-import com.revature.models.TotalExpense;
 import com.revature.repositories.ExpenseRepository;
 import com.revature.repositories.ExpenseTypeRepository;
 

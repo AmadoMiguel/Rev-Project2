@@ -109,8 +109,8 @@ public class UserServicesTest {
 		Optional<User> fakeOldUser = Optional.of(new User());
 		fakeOldUser.get().setId(1);
 		fakeOldUser.get().setUsername("old_user");
-		fakeOldUser.get().setFirstname("Test");
-		fakeOldUser.get().setLastname("User");
+		fakeOldUser.get().setFirstName("Test");
+		fakeOldUser.get().setLastName("User");
 		fakeOldUser.get().setEmail("old@mail.com");
 //		Hash the password and set it to the user
 		String hashedPassword = BCrypt.hashpw("oldPassword", BCrypt.gensalt());
@@ -121,9 +121,9 @@ public class UserServicesTest {
 //		Let old properties the same as the old user
 		User fakeUpdatedUser = new User();
 		fakeUpdatedUser.setId(1); // Same id of the old user
-		fakeUpdatedUser.setLastname("User");
+		fakeUpdatedUser.setLastName("User");
 		fakeUpdatedUser.setEmail("old@mail.com");
-		fakeUpdatedUser.setFirstname("New Name");
+		fakeUpdatedUser.setFirstName("New Name");
 		fakeUpdatedUser.setPassword(hashedPassword);
 //		Define behaviour of save user
 		when(userRepositoryMock.save(fakeUpdatedUser)).thenReturn(fakeUpdatedUser);
@@ -137,8 +137,8 @@ public class UserServicesTest {
 		Optional<User> fakeUser = Optional.of(new User());
 		fakeUser.get().setId(1);
 		fakeUser.get().setUsername("searched_user");
-		fakeUser.get().setFirstname("Searched");
-		fakeUser.get().setLastname("User");
+		fakeUser.get().setFirstName("Searched");
+		fakeUser.get().setLastName("User");
 		fakeUser.get().setEmail("searched@mail.com");
 //		Define user repository behaviour
 		when(userRepositoryMock.findById(fakeUser.get().getId())).thenReturn(fakeUser);

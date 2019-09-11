@@ -1,11 +1,8 @@
 package com.revature.services;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -13,26 +10,38 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.revature.dto.TokenDto;
+import com.revature.dto.UserDto;
 import com.revature.models.Expense;
 import com.revature.models.ExpenseType;
 import com.revature.models.TotalExpense;
 import com.revature.repositories.ExpenseRepository;
 import com.revature.repositories.ExpenseTypeRepository;
+import com.revature.repositories.UserTokenRepository;
 
 @Service
 public class ExpenseService {
 	ExpenseRepository<Expense> expenseRepository;
 	ExpenseTypeRepository<ExpenseType> expenseTypeRepository;
+	UserTokenRepository<TokenDto> userTokenRepository;
 
 	@Autowired
 	public ExpenseService(ExpenseRepository<Expense> expenseRepository,
-			ExpenseTypeRepository<ExpenseType> expenseTypeRepository) {
+			ExpenseTypeRepository<ExpenseType> expenseTypeRepository,
+			UserTokenRepository<TokenDto> userTokenRepository) {
 		super();
 		this.expenseRepository = expenseRepository;
 		this.expenseTypeRepository = expenseTypeRepository;
+		this.userTokenRepository = userTokenRepository;
 	}
+	
 
 	public List<Expense> findExpenseByUserIdAndExpenseType(int userId, Optional<ExpenseType> expenseType) {
 		return expenseRepository.findByUserIdAndExpenseType(userId, expenseType);
@@ -43,9 +52,46 @@ public class ExpenseService {
 		return expenseRepository.findById(id);
 	}
 
-	// Get expense by USER
+	// Get expense by user id
+//	Apply circuit breaker in case user service is shut down/fails
+	@HystrixCommand(fallbackMethod = "findByUserIdFallback")
 	public List<Expense> findByUserId(int userId) {
-		return expenseRepository.findByUserIdOrderByIdDesc(userId);
+//		Request user info from user service
+		RestTemplate restTemplate = new RestTemplate();
+//		Retrieve token from the repository
+		Optional<TokenDto> currentUserToken = userTokenRepository.findByUserId(userId);
+		if(currentUserToken.isPresent()) {
+//			Set the authorization headers
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", currentUserToken.get().getCurrentUserToken());
+//			Create  http entity request
+			HttpEntity<String> headersEntity= new HttpEntity<String>(headers);
+			UserDto foundUser = restTemplate.exchange("http://localhost:8765/user-service/user/"+userId
+					  								 ,HttpMethod.GET, headersEntity, 
+					  								 UserDto.class).getBody();
+			List<Expense> foundExpenses = expenseRepository.findByUserIdOrderByIdDesc(userId);
+			//Set user dto to each one of the expenses
+			if(foundExpenses != null) {
+			for(Expense e: foundExpenses) {
+				e.setUser(foundUser);
+			}
+				return foundExpenses;
+			} else {
+				return foundExpenses;
+			}
+		} else {
+			return null;
+		}
+	}
+//	Fallback method that is called in case the user service is not working. The only information
+//	sent from this method is the user id
+	public List<Expense> findByUserIdFallback(int userId) {
+		return expenseRepository.findByUserId(userId);
+	}
+	
+	public void saveCurrentUserToken(TokenDto userToken) {
+//		Save the token on the user token table to access it for the current user
+		userTokenRepository.save(userToken);
 	}
 
 	// Get expense by TYPE
@@ -61,13 +107,33 @@ public class ExpenseService {
 //	Function used to get monthly expenses; it means, after the start of current month and before
 //	the start of next month
 	public List<Expense> findMonthlyExpensesByUserId(int userId) {
-//		Define the Date object according to the date parameter
-
 //		Define previous month date
 		LocalDate currMonthStart = LocalDate.now().withDayOfMonth(1);
 //		Define next month date
 		LocalDate nextMonthStart = LocalDate.now().plusMonths(1).withDayOfMonth(1);
-		return expenseRepository.findByUserIdAndDateBetween(userId, currMonthStart, nextMonthStart);
+		List<Expense> foundExpenses = expenseRepository
+					.findByUserIdAndDateBetween(userId, currMonthStart, nextMonthStart);
+//		Retrieve token from the repository
+		Optional<TokenDto> currentUserToken = userTokenRepository.findByUserId(userId);
+		if (currentUserToken.isPresent()) {
+//			Prepare the template
+			RestTemplate restTemplate = new RestTemplate();
+//			Set the authorization headers
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", currentUserToken.get().getCurrentUserToken());
+//			Create  http entity request
+			HttpEntity<String> headersEntity= new HttpEntity<String>(headers);
+			UserDto foundUser = restTemplate.exchange("http://localhost:8765/user-service/user/"+userId
+													  ,HttpMethod.GET, headersEntity, 
+													  UserDto.class).getBody();
+//			Assign user to the expenses
+			for(Expense e : foundExpenses) {
+				e.setUser(foundUser);
+			} 
+			return foundExpenses;
+		} else {
+			return null;
+		}
 	}
 
 	public List<TotalExpense> findTotalMonthlyExpensesForYearByUserId(int userId) {

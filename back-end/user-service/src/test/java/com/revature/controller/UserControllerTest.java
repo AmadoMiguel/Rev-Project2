@@ -143,7 +143,7 @@ public class UserControllerTest {
 		fakeUser.setPassword(hashedPassword);
 //		Create ClientInfo object for the test
 		ClientInfo userResponse = new ClientInfo(fakeUser.getId(), fakeUser.getUsername(), 
-												 fakeUser.getFirstname(),fakeUser.getLastname(), 
+												 fakeUser.getFirstName(),fakeUser.getLastName(), 
 												 fakeUser.getEmail(), "thisisafaketoken");
 //		Define what the user service method should return
 		when(userServiceMock.loginUser(fakeUser.getUsername(), fakeUser.getPassword()))

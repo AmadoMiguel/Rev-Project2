@@ -1,7 +1,6 @@
 package com.revature.models;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,13 +10,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.revature.dto.UserDto;
 
 @Entity
 @Table(name = "expenses")
@@ -28,15 +27,12 @@ public class Expense {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-//	TODO: define relationship with user service and set RestTemplate/FeignClient
-//	Define many-to-one relationship between expenses and users tables
-//	@ManyToOne
-//	@JoinColumn(name="user_id")
-//	private User user;
-
 	@Column(name = "user_id")
 	private int userId;
 
+	@Transient
+	private UserDto user;
+	
 //	Define many-to-one relationship between expenses and expense-types tables
 	@ManyToOne
 	@JoinColumn(name = "type_id")
@@ -44,6 +40,7 @@ public class Expense {
 
 //	Other fields
 	@DateTimeFormat(iso = ISO.DATE)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	LocalDate date;
 	
 	@Column(name = "description")
@@ -52,10 +49,12 @@ public class Expense {
 	@Column(name = "amount")
 	private double amount;
 
-	@Override
-	public String toString() {
-		return "Expense [id=" + id + ", userId=" + userId + ", expenseType=" + expenseType + ", date=" + date
-				+ ", description=" + description + ", amount=" + amount + "]";
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
 	}
 
 	public int getUserId() {
@@ -65,14 +64,13 @@ public class Expense {
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
-
-//	Auto generated...
-	public int getId() {
-		return id;
+	
+	public UserDto getUser() {
+		return user;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setUser(UserDto user) {
+		this.user = user;
 	}
 
 	public ExpenseType getExpenseType() {
@@ -120,4 +118,12 @@ public class Expense {
 	public Expense() {
 		super();
 	}
+
+	@Override
+	public String toString() {
+		return "Expense [id=" + id + ", userId=" + userId + ", user=" + user + ", expenseType=" + expenseType
+				+ ", date=" + date + ", description=" + description + ", amount=" + amount + "]";
+	}
+	
+	
 }

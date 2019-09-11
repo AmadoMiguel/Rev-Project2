@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.revature.dto.TokenDto;
 import com.revature.models.Expense;
 import com.revature.models.ExpenseType;
 import com.revature.models.TotalExpense;
@@ -46,7 +47,16 @@ public class ExpenseController {
 	public List<Expense> getExpenseByUserId(@PathVariable int userId) {
 		return expenseService.findByUserId(userId);
 	}
-
+	
+//	Receive user token from user service in order to retrieve user information from this service
+	@RequestMapping(value = "/user/{userId}/token/{token}", method = RequestMethod.PUT)
+	public void setCurrentUserToken(@PathVariable String userId, @PathVariable String token) {
+			TokenDto currentUserToken = new TokenDto();
+			currentUserToken.setCurrentUserToken(token);
+			currentUserToken.setUserId(Integer.valueOf(userId));
+			expenseService.saveCurrentUserToken(currentUserToken);
+	}
+	
 	@RequestMapping(value = "/user/{userId}/monthly", method = RequestMethod.GET)
 	public List<Expense> getMonthlyExpensesByUserId(@PathVariable int userId) {
 		return expenseService.findMonthlyExpensesByUserId(userId);

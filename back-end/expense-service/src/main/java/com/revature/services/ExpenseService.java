@@ -90,8 +90,15 @@ public class ExpenseService {
 	}
 	
 	public void saveCurrentUserToken(TokenDto userToken) {
-//		Save the token on the user token table to access it for the current user
-		userTokenRepository.save(userToken);
+//		Search if there was a token assigned previously for the user
+		Optional<TokenDto> currentUserToken = userTokenRepository.findByUserId(userToken.getUserId());
+		if(currentUserToken.isPresent()) {
+//			Update the existing token for the user
+			userTokenRepository.save(currentUserToken.get());
+		} else {
+//			Save the new token with user id
+			userTokenRepository.save(userToken);
+		}
 	}
 
 	// Get expense by TYPE
@@ -106,6 +113,7 @@ public class ExpenseService {
 
 //	Function used to get monthly expenses; it means, after the start of current month and before
 //	the start of next month
+	@HystrixCommand(fallbackMethod="findMonthlyExpensesByUserIdFallback")
 	public List<Expense> findMonthlyExpensesByUserId(int userId) {
 //		Define previous month date
 		LocalDate currMonthStart = LocalDate.now().withDayOfMonth(1);
@@ -134,6 +142,15 @@ public class ExpenseService {
 		} else {
 			return null;
 		}
+	}
+	
+//	Fallback method for monthly user expenses without the complete user information
+	public List<Expense> findMonthlyExpensesByUserIdFallback(int userId) {
+//		Define previous month date
+		LocalDate currMonthStart = LocalDate.now().withDayOfMonth(1);
+//		Define next month date
+		LocalDate nextMonthStart = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+		return expenseRepository.findByUserIdAndDateBetween(userId, currMonthStart, nextMonthStart);
 	}
 
 	public List<TotalExpense> findTotalMonthlyExpensesForYearByUserId(int userId) {

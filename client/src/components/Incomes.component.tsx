@@ -56,7 +56,7 @@ function Incomes(props: IIncomeProps) {
   }
 
   async function getAllIncomes() {
-    const url = `http://localhost:8080/income/user/${props.user.id}`;
+    const url = `http://localhost:8080/income/user/${props.user.userInfo.id}`;
     await Axios.get(url)
       .then((payload: any) => {
         // console.log(payload.data);
@@ -163,7 +163,7 @@ function Incomes(props: IIncomeProps) {
     // Prepare request setup
     const url = 'http://localhost:8080/income';
     const data = {
-      userId: props.user.id,
+      userId: props.user.userInfo.id,
       incomeType: newType,
       description: newDescripion,
       amount: newAmount
@@ -208,7 +208,7 @@ function Incomes(props: IIncomeProps) {
       }}>
         {//<Container style={{ textAlign: 'center'}}> 
         }
-        <h2>Manage your income, {props.user.first}</h2>
+        <h2>Manage your income, {props.user.userInfo.firstName}</h2>
 
         {//<Grid item xs={12} md={9}>
         }

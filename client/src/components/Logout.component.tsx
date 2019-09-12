@@ -3,6 +3,8 @@ import { updateUserLoggedIn, updateUserInfo, setExpenses, setExpenseTypes, setTh
 import { IUserState, IState, IExpensesState } from '../redux';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
+import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
+import { setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
 
 interface ILogoutProps {
   user: IUserState;
@@ -14,6 +16,7 @@ interface ILogoutProps {
   setThisMonthExpenses: (thisMonthExpenses: any) => void;
   setExpensesTotal: (expensesTotal: number) => void;
   setThisMonthExpensesTotal: (thisMonthExpensesTotal: number) => void;
+  setThisYearExpensesTotalByMonth: (thisYearExpensesTotalByMonth:MonthExpensesTotal[]) => void;
 }
 
 export function Logout(props: ILogoutProps) {
@@ -25,9 +28,10 @@ export function Logout(props: ILogoutProps) {
     username: '',
     token: ''
   })
-  props.setExpenses(undefined);
-  props.setExpenseTypes(undefined);
-  props.setThisMonthExpenses(undefined);
+  props.setExpenses([]);
+  props.setExpenseTypes([]);
+  props.setThisMonthExpenses([]);
+  props.setThisYearExpensesTotalByMonth([]);
   props.setExpensesTotal(0);
   props.setThisMonthExpensesTotal(0);
   return (
@@ -50,7 +54,8 @@ const mapDispatchToProps = {
   setExpenseTypes: setExpenseTypes,
   setThisMonthExpenses: setThisMonthExpenses,
   setExpensesTotal: setExpensesTotal,
-  setThisMonthExpensesTotal: setThisMonthExpensesTotal
+  setThisMonthExpensesTotal: setThisMonthExpensesTotal,
+  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Logout);

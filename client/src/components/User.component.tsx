@@ -139,15 +139,15 @@ export function User(props: IUserAcct) {
   }
   async function updateUser(body: any) {
     const url = 'http://localhost:8080/update';
-    await Axios.patch(url, body, { headers: { Authorization: props.user.token } }).then(payload => {
+    await Axios.patch(url, body, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
       props.updateUserInfo({
         isLoggedIn: true,
-        id: props.user.id,
-        first: updateFname ? fnameField : props.user.first,
-        last: updateLname ? lnameField : props.user.last,
-        email: updateEmail ? emailField : props.user.email,
-        username: updateUsername ? username : props.user.username,
-        token: props.user.token
+        id: props.user.userInfo.id,
+        first: updateFname ? fnameField : props.user.userInfo.firstName,
+        last: updateLname ? lnameField : props.user.userInfo.lastName,
+        email: updateEmail ? emailField : props.user.userInfo.email,
+        username: updateUsername ? username : props.user.userInfo.username,
+        token: props.user.userInfo.token
       });
       handleCancel();
       setOpenUp(true);
@@ -156,7 +156,7 @@ export function User(props: IUserAcct) {
     })
   }
   const handleUpdate = () => {
-    let body: string = `{"id": ${props.user.id}`;
+    let body: string = `{"id": ${props.user.userInfo.id}`;
 
     if (updateFname && fnameField) {
       body += `, "firstname": "${fnameField}"`;
@@ -194,23 +194,23 @@ export function User(props: IUserAcct) {
   async function handleDelete() {
 
     if (toDelete.budget) {
-      const url = `http://localhost:8080/user/budget/${props.user.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.token } }).then(payload => {
+      const url = `http://localhost:8080/user/budget/${props.user.userInfo.id}`;
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
 
         setOpenDelete(true);
 
       })
     }
     if (toDelete.expenses) {
-      const url = `http://localhost:8080/expense/user/expense/${props.user.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.token } }).then(payload => {
+      const url = `http://localhost:8080/expense/user/expense/${props.user.userInfo.id}`;
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
         setOpenDelete(true);
       });
 
     }
     if (toDelete.income) {
-      const url = `http://localhost:8080/user/income/${props.user.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.token } }).then(payload => {
+      const url = `http://localhost:8080/user/income/${props.user.userInfo.id}`;
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
         setOpenDelete(true);
       });
     }
@@ -230,7 +230,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="editFirst"
-                placeholder={props.user.first}
+                placeholder={props.user.userInfo.firstName}
                 onChange={handleFnameInput}
                 label='Edit First Name'
                 variant="outlined"
@@ -244,7 +244,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="staticFirst"
-                value={props.user.first}
+                value={props.user.userInfo.firstName}
                 disabled={true}
                 label='First Name'
                 variant="filled"
@@ -260,7 +260,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="editLast"
-                placeholder={props.user.last}
+                placeholder={props.user.userInfo.lastName}
                 onChange={handleLnameInput}
                 label='Edit Last Name'
                 variant="outlined"
@@ -275,7 +275,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="staticLast"
-                value={props.user.last}
+                value={props.user.userInfo.lastName}
                 disabled={true}
                 label='Last Name'
                 variant="filled"
@@ -292,7 +292,7 @@ export function User(props: IUserAcct) {
               <TextField
                 id="editUn"
                 onChange={handleUsernameInput}
-                placeholder={props.user.username}
+                placeholder={props.user.userInfo.username}
                 variant="outlined"
                 label='label'
                 style={{ width: '200px', margin: '10px' }}
@@ -305,7 +305,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="staticUn"
-                value={props.user.username}
+                value={props.user.userInfo.username}
                 variant="filled"
                 disabled={true}
                 label='Username'
@@ -319,7 +319,7 @@ export function User(props: IUserAcct) {
               <TextField
                 id="editEmail"
                 onChange={handleEmailInput}
-                placeholder={props.user.email}
+                placeholder={props.user.userInfo.email}
                 variant="outlined"
                 label='Email'
                 style={{ width: '200px', margin: '10px' }}
@@ -330,7 +330,7 @@ export function User(props: IUserAcct) {
             <div>
               <TextField
                 id="staticEmail"
-                value={props.user.email}
+                value={props.user.userInfo.email}
                 variant="filled"
                 disabled={true}
                 label='Email'

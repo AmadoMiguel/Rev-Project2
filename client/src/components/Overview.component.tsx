@@ -150,7 +150,7 @@ function Overview(props: IHomeProps) {
 
   
   async function fetchAllData() {
-    let url = `http://localhost:8080/income/user/${props.user.id}`;
+    let url = `http://localhost:8080/income/user/${props.user.userInfo.id}`;
     await Axios.get(url)
       .then((payload: any) => {
         // console.log(payload.data);
@@ -158,7 +158,7 @@ function Overview(props: IHomeProps) {
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
-    url = `http://localhost:8080/budget/user/${props.user.id}`;
+    url = `http://localhost:8080/budget/user/${props.user.userInfo.id}`;
     await Axios.get(url)
       .then((payload: any) => {
         if (payload.data.length != 0) {
@@ -167,7 +167,7 @@ function Overview(props: IHomeProps) {
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
-    url = `http://localhost:8080/expense/user/${props.user.id}/yearly`;
+    url = `http://localhost:8080/expense/user/${props.user.userInfo.id}/yearly`;
     await Axios.get(url)
       .then((payload: any) => {
         let arrMonth: string[] = [];

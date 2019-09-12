@@ -1,20 +1,23 @@
-import { userActionTypes } from '../actions';
+import { userActionTypes } from '../actions/user.actions';
+import { IUserState } from '..';
 
-const initialState = {
+const initialState:IUserState = {
     isLoggedIn: false,
     // Personal user info and jwt
-    id: 0,
-    first: '',
-    last: '',
-    username: '',
-    email: '',
-    token: ''
+    userInfo:{
+        id: 0,
+        username:"",
+        firstName: "",
+        lastName: "",
+        email:"",
+        token:""
+    }
 };
 
 // Define what actually happens when a specific action is dispatched.
 // Reducers must be pure functions, therefore do not alter
 // state directly within them. Construct and return a new state.
-export const updateUserReducer = (state = initialState, action: any) => {
+export const updateUserReducer = (state:IUserState = initialState, action: any) => {
     switch (action.type) {
         case userActionTypes.UPDATE_USER_LOGGED_IN:
             return {
@@ -24,7 +27,7 @@ export const updateUserReducer = (state = initialState, action: any) => {
         case userActionTypes.UPDATE_USER_INFO:
             return {
                 ...state,
-                ...action.payload
+                userInfo:action.userInfo
             }
         default: return state;
     }

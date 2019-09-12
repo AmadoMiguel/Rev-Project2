@@ -10,18 +10,19 @@ import { BudgetType } from "../models/BudgetType";
 import { setBudgetsInfoReducer } from "./reducers/budgets.reducer";
 import { IncomeType } from "../models/IncomeType";
 import { Income } from "../models/Income";
+import { User } from "../models/User";
+import { setIncomesReducer } from "./reducers/incomes.reducer";
 
 // Interfaces for every state we want to use
 // Need more user data, add it here
 export interface IUserState {
     isLoggedIn: boolean,
-    // userInfo:User
-    id: number,
-    first: string,
-    last: string,
-    username: string,
-    email: '',
-    token: string
+    userInfo:User
+}
+
+// User interface size redux interface for mobile responsiveness
+export interface IUiState {
+    isMobileView: boolean
 }
 
 // Redux interfaces for budgets, expenses and incomes
@@ -44,17 +45,13 @@ export interface IIncomesState {
     incomeTypes:IncomeType[]
 }
 
-// User interface size redux interface for mobile responsiveness
-export interface IUiState {
-    isMobileView: boolean
-}
-
 // Interface for combination of every previous state
 export interface IState {
     user: IUserState,
     ui: IUiState,
     userExpenses:IExpensesState,
-    userBudgets:IBudgetsState
+    userBudgets:IBudgetsState,
+    userIncomes:IIncomesState
 }
 
 // Combine all reducers into one
@@ -62,5 +59,6 @@ export const state = combineReducers<IState>({
     user: updateUserReducer,
     ui: updateUiReducer,
     userExpenses:setExpensesInfoReducer,
-    userBudgets:setBudgetsInfoReducer
+    userBudgets:setBudgetsInfoReducer,
+    userIncomes:setIncomesReducer
 })

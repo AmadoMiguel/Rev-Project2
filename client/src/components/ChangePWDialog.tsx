@@ -116,15 +116,15 @@ export function ChangePw(props: IUpdatePWProps) {
   async function updatePw() {
     const url = 'http://localhost:8080/user/verifyPassword';
     await Axios.post(url, {
-      username: props.user.username,
+      username: props.user.userInfo.username,
       password: state.prev
-    }, { headers: { Authorization: props.user.token } }).then(payload => {
+    }, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
       const url = 'http://localhost:8080/update'
       if (payload.status === 200) {
         Axios.patch(url, {
-          id: props.user.id,
+          id: props.user.userInfo.id,
           password: state.newOne
-        }, { headers: { Authorization: props.user.token } });
+        }, { headers: { Authorization: props.user.userInfo.token } });
         handleClose();
         handleOpenPw();
       }

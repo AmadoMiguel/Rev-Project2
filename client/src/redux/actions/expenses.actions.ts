@@ -1,3 +1,7 @@
+import { Expense } from "../../models/Expense";
+import { ExpenseType } from "../../models/ExpenseType";
+import { MonthExpensesTotal } from "../../models/MonthExpensesTotal";
+
 export const expensesActionTypes = {
     SET_EXPENSES: "SET_EXPENSES",
     SET_EXPENSE_TYPES: "SET_EXPENSE_TYPES",
@@ -8,19 +12,19 @@ export const expensesActionTypes = {
 }
 
 // Actions related to the user expenses information
-export const setExpenses = (expenses:any) => (dispatch:any) => {
+export const setExpenses = (expenses:Expense[]) => (dispatch:any) => {
     dispatch({
         type: expensesActionTypes.SET_EXPENSES,
         expenses:expenses
     })
 }
-export const setExpenseTypes = (expenseTypes:any) => (dispatch:any) => {
+export const setExpenseTypes = (expenseTypes:ExpenseType[]) => (dispatch:any) => {
     dispatch({
         type: expensesActionTypes.SET_EXPENSE_TYPES,
         expenseTypes:expenseTypes
     })
 }
-export const setThisMonthExpenses = (thisMonthExpenses:any) => (dispatch:any) => {
+export const setThisMonthExpenses = (thisMonthExpenses:Expense[]) => (dispatch:any) => {
     dispatch({
         type: expensesActionTypes.SET_THIS_MONTH_EXPENSES,
         thisMonthExpenses:thisMonthExpenses
@@ -39,9 +43,10 @@ export const setThisMonthExpensesTotal = (thisMonthExpensesTotal:number) => (dis
     })
 }
 
-export const setThisYearExpensesTotalByMonth = (thisYearTotalExpensesByMonth:any) => (dispatch:any) => {
-    dispatch({
-        type: expensesActionTypes.SET_THIS_YEAR_TOTAL_MONTHLY_EXPENSES,
-        thisYearTotalExpensesByMonth:thisYearTotalExpensesByMonth
-    })
+export const setThisYearExpensesTotalByMonth = 
+    (thisYearTotalExpensesByMonth:MonthExpensesTotal[]) => (dispatch:any) => {
+        dispatch({
+            type: expensesActionTypes.SET_THIS_YEAR_TOTAL_MONTHLY_EXPENSES,
+            thisYearTotalExpensesByMonth:thisYearTotalExpensesByMonth
+        })
 }

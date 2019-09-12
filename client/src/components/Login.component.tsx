@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Paper, Button, Divider, TextField } from '@material-ui/core';
 import { IUserState, IState, IExpensesState } from '../redux';
-import { updateUserLoggedIn, updateUserInfo, setExpenses, setExpenseTypes, setThisMonthExpenses } from '../redux/actions';
+import { updateUserLoggedIn, updateUserInfo } from '../redux/actions/user.actions';
+import { setExpenses, setExpenseTypes, setThisMonthExpenses, 
+        setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
 import Axios from 'axios';
+import { Expense } from '../models/Expense';
+import { ExpenseType } from '../models/ExpenseType';
+import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
 
+// TODO: Add incomes and budgets
 interface ILoginProps {
+  // User info
   user: IUserState;
   updateUserInfo: (payload: any) => void;
   updateUserLoggedIn: (val: boolean) => void;
+  // User expenses info
   userExpenses: IExpensesState;
-  setExpenses: (expenses:any) => void;
-  setExpenseTypes: (expenseTypes:any) => void;
-  setThisMonthExpenses: (thisMonthExpenses:any) => void;
+  setExpenses: (expenses:Expense[]) => void;
+  setExpenseTypes: (expenseTypes:ExpenseType[]) => void;
+  setThisMonthExpenses: (thisMonthExpenses:Expense[]) => void;
+  setThisYearExpensesTotalByMonth: (thisYearExpensesTotalByMonth:MonthExpensesTotal[]) => void;
+  // User budgets info
+  // User incomes info
   history: any;
 }
 
@@ -34,7 +45,7 @@ export function Login(props: ILoginProps) {
   async function getUserExpensesInfo(userId:number) {
     // User expenses info connected to redux
     let url = `http://localhost:8080/expense/user/${userId}`;
-    if (!props.userExpenses.expenses) { 
+    if (!props.userExpenses.expenses.length) { 
       await Axios.get(url)
         .then((payload: any) => {
           payload.data.length > 0 && props.setExpenses(payload.data);
@@ -42,7 +53,7 @@ export function Login(props: ILoginProps) {
           // Handle error by displaying something else
         });
     }
-    if (!props.userExpenses.thisMonthExpenses) {
+    if (!props.userExpenses.thisMonthExpenses.length) {
       url = `http://localhost:8080/expense/user/${userId}/monthly`;
       await Axios.get(url)
         .then((payload: any) => {
@@ -50,6 +61,15 @@ export function Login(props: ILoginProps) {
         }).catch((err: any) => {
           // Handle error by displaying something else
         });
+    }
+    if (!props.userExpenses.thisYearTotalExpensesByMonth.length) {
+      url = `http://localhost:8765/expense-service/user/${userId}/yearly`;
+      await Axios.get(url)
+        .then((payload: any) => {
+          payload.data.length > 0 && props.setThisYearExpensesTotalByMonth(payload.data);
+        }).catch((err:any) => {
+          // Handle error here
+        })
     }
     url = `http://localhost:8080/expense/types`;
     await Axios.get(url)
@@ -162,6 +182,7 @@ const mapDispatchToProps = {
   setExpenses: setExpenses,
   setExpenseTypes: setExpenseTypes,
   setThisMonthExpenses: setThisMonthExpenses,
+  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

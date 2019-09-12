@@ -31,5 +31,6 @@ export const setIncomesReducer = (state:IIncomesState = initialState, action:any
                 ...state,
                 incomeTypes:action.incomeTypes
             }
+        default: return state
     }
 }

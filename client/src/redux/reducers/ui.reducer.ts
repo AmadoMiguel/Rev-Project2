@@ -1,4 +1,4 @@
-import { uiActionTypes } from "../actions";
+import { uiActionTypes } from "../actions/ui.actions";
 
 const initialState = {
     isMobileView: !window.matchMedia('(min-width: 700px)').matches

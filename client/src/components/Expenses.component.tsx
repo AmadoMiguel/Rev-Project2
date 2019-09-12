@@ -149,7 +149,7 @@ function Expenses(props: IExpenseProps) {
       // Prepare request setup
       const url = 'http://localhost:8080/expense';
       const data = {
-        userId: props.user.id,
+        userId: props.user.userInfo.id,
         expenseType: newType,
         date: newDate,
         description: newDescripion,
@@ -271,7 +271,7 @@ function Expenses(props: IExpenseProps) {
                   color: colors.teal, width: "60%", backgroundColor: colors.unusedGrey
                 }}>
                 <h2 style={{ marginBottom: '40px' }}>
-                  Start setting up your expenses, {props.user.first}. <br /> <br /> <br />
+                  Start setting up your expenses, {props.user.userInfo.firstName}. <br /> <br /> <br />
                   What about a new one? <br />
                   <NewExpense
                     types={props.userExpenses.expenseTypes}

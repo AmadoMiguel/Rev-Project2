@@ -101,7 +101,7 @@ export function Budget(props: IBudgetProps) {
   }
 
   async function getAllBudgets() {
-    const url = `http://localhost:8080/budget/user/${props.user.id}`;
+    const url = `http://localhost:8080/budget/user/${props.user.userInfo.id}`;
     await Axios.get(url)
       .then((payload: any) => {
         if (payload.data.length != 0) {
@@ -288,7 +288,7 @@ export function Budget(props: IBudgetProps) {
                       <h2>Creating a budget is quick and simple.<br />To get started,</h2>
                       {isCreatingBudget ? (
                         <CreateBudgetStepper
-                          isMobileView={props.ui.isMobileView} userId={props.user.id}
+                          isMobileView={props.ui.isMobileView} userId={props.user.userInfo.id}
                           types={budgetTypes} handleSubmit={createBudget} handleCancel={handleCancelCreate} />
                       ) : (
                           <Button style={{ marginBottom: '10px' }} onClick={() => setIsCreatingBudget(true)} size="large" color="secondary">
@@ -353,7 +353,7 @@ export function Budget(props: IBudgetProps) {
                       </HorizontalTabPanel>
                       {isCreatingBudget ? (
                         <CreateBudgetStepper
-                          isMobileView={props.ui.isMobileView} userId={props.user.id}
+                          isMobileView={props.ui.isMobileView} userId={props.user.userInfo.id}
                           types={budgetTypes} handleSubmit={createBudget} handleCancel={handleCancelCreate} />
                       ) : (
                           <Fragment>

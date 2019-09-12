@@ -63,33 +63,33 @@ export function Register(props: IRegisterProps) {
   async function handleRegistration() {
     if (!usernameField) {
       setUsernameError(true);
-      setUsernameErrorTxt('PLease Enter A Username');
+      setUsernameErrorTxt('Please Enter an username');
     }
     else if (!pwField) {
       setPwError(true);
-      setPwErrorTxt('Please Enter A Password');
+      setPwErrorTxt('Please Enter a password');
     }
     else if (!pwCheckField) {
       setPwCheckError(true);
-      setPwCheckErrorTxt('Please Re-enter Password');
+      setPwCheckErrorTxt('Please re-enter password');
     }
     else if (pwField !== pwCheckField) {
       setPwError(true);
-      setPwErrorTxt('Passwords Do Not Match');
+      setPwErrorTxt('Passwords do not match');
       setPwCheckError(true);
-      setPwCheckErrorTxt('Passwords Do Not Match');
+      setPwCheckErrorTxt('Passwords do not match');
     }
     else if (!fnameField) {
       setFnameError(true);
-      setFnameErrorTxt('Please Enter First Name');
+      setFnameErrorTxt('Please enter first name');
     }
     else if (!lnameField) {
       setLnameError(true);
-      setLnameErrorTxt('Please Enter Last Name');
+      setLnameErrorTxt('Please enter last name');
     }
     else if (!emailField) {
       setEmailError(true);
-      setEmailErrorTxt('Please Enter a valid Email Address');
+      setEmailErrorTxt('Please enter a valid email address');
     }
     else {
       const url = 'http://localhost:8080/register/verifyUser';

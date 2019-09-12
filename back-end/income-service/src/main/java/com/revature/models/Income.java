@@ -27,7 +27,6 @@ public class Income {
 	private int amount;
 	public Income() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	public Income(int id, int userId, IncomeType incomeType, String description, int amount) {
 		super();

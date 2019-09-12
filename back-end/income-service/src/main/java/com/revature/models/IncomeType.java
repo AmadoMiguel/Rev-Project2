@@ -12,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "income_types")
 public class IncomeType {
@@ -24,6 +26,7 @@ public class IncomeType {
 //	Budgets table foreign key (type)
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
 	@JoinColumn(name = "income_type") // Define foreign key column
+	@JsonIgnore
 	private List<Income> Incomes = new ArrayList<Income>();
 
 //	Type column

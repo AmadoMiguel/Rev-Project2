@@ -1,13 +1,20 @@
 import { Backdrop, Button, Divider, Paper, Popover, TextField } from '@material-ui/core';
 import React, { Fragment, useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { IState, IUserState, IExpensesState } from '../redux';
+import { IState, IUserState, IExpensesState, IIncomesState, IBudgetsState } from '../redux';
 import { updateUserLoggedIn, updateUserInfo,  } from '../redux/actions/user.actions';
 import { setExpenses, setExpenseTypes, setThisMonthExpenses, setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
 import Axios from 'axios';
 import { Expense } from '../models/Expense';
 import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
 import { ExpenseType } from '../models/ExpenseType';
+import { setBudgets, setBudgetTypes } from '../redux/actions/budgets.actions';
+import { setIncomes, setIncomeTypes } from '../redux/actions/incomes.actions';
+import { IncomeType } from '../models/IncomeType';
+import { Income } from '../models/Income';
+import { BudgetType } from '../models/BudgetType';
+import { Budget } from '../models/Budget';
+import { User } from '../models/User';
 
 interface ILoginProps {
   // Popover info
@@ -17,7 +24,7 @@ interface ILoginProps {
   // User info
   user: IUserState;
   updateUserLoggedIn: (val: boolean) => void;
-  updateUserInfo: (payload: any) => void;
+  updateUserInfo: (userInfo: User) => void;
   // User expenses info
   userExpenses: IExpensesState;
   setExpenses: (expenses:Expense[]) => void;
@@ -25,7 +32,13 @@ interface ILoginProps {
   setThisMonthExpenses: (thisMonthExpenses:Expense[]) => void;
   setThisYearExpensesTotalByMonth: (thisYearExpensesTotalByMonth:MonthExpensesTotal[]) => void;
   // User budgets info
+  userBudgets: IBudgetsState;
+  setBudgets: (budgets:Budget[]) => void;
+  setBudgetTypes: (budgetTypes:BudgetType[]) => void;
   // User incomes info
+  userIncomes: IIncomesState;
+  setIncomes: (incomes:Income[]) => void;
+  setIncomeTypes: (incomeTypes:IncomeType[]) => void;
 }
 
 export function Login(props: ILoginProps) {
@@ -44,49 +57,78 @@ export function Login(props: ILoginProps) {
   // As soon as user logs in, request expenses information about her/him
   async function getUserExpensesInfo(userId:number) {
     // User expenses info connected to redux
-    let url = `http://localhost:8080/expense/user/${userId}`;
-    if (!props.userExpenses.expenses.length) { 
-      await Axios.get(url)
-        .then((payload: any) => {
-          payload.data.length > 0 && props.setExpenses(payload.data);
-        }).catch((err: any) => {
-          // Handle error by displaying something else
-        });
-    }
-    if (!props.userExpenses.thisMonthExpenses.length) {
-      url = `http://localhost:8080/expense/user/${userId}/monthly`;
-      await Axios.get(url)
-        .then((payload: any) => {
-          payload.data.length > 0 && props.setThisMonthExpenses(payload.data);
-        }).catch((err: any) => {
-          // Handle error by displaying something else
-        });
-    }
+    let url = `http://localhost:8765/expense-service/expense/user/${userId}`;
+    await Axios.get(url)
+      .then((payload: any) => {
+        payload.data.length > 0 && props.setExpenses(payload.data);
+      }).catch((err: any) => {
+        // Handle error by displaying something else
+      });
+    
+    url = `http://localhost:8765/expense-service/expense/user/${userId}/monthly`;
+    await Axios.get(url)
+      .then((payload: any) => {
+        payload.data.length > 0 && props.setThisMonthExpenses(payload.data);
+      }).catch((err: any) => {
+        // Handle error by displaying something else
+      });
 
-    if (!props.userExpenses.thisYearTotalExpensesByMonth.length) {
-      url = `http://localhost:8765/expense-service/user/${userId}/yearly`;
-      await Axios.get(url)
-        .then((payload: any) => {
-          payload.data.length > 0 && props.setThisYearExpensesTotalByMonth(payload.data);
-        }).catch((err:any) => {
-          // Handle error here
-        })
-    }
+    url = `http://localhost:8765/expense-service/expense/user/${userId}/yearly`;
+    await Axios.get(url)
+      .then((payload: any) => {
+        payload.data.length > 0 && props.setThisYearExpensesTotalByMonth(payload.data);
+      }).catch((err:any) => {
+        // Handle error here
+      })
 
-    url = `http://localhost:8080/expense/types`;
+    url = `http://localhost:8765/expense-service/expense/types`;
     await Axios.get(url)
       .then((payload: any) => {
         payload.data.length > 0 && props.setExpenseTypes(payload.data);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
-    // After all information is stored, head user to the overview page
-    props.userExpenses.expenses && props.updateUserLoggedIn(true);
-    props.handleClose();    
+  }
+
+  async function getUserBudgetsInfo(userId:number) {
+    // Get user budgets
+    let url = `http://localhost:8765/budget-service/budget/user/${userId}`;
+    await Axios.get(url)
+      .then((payload:any) => {
+        props.setBudgets(payload.data); 
+      })
+      .catch((err:any) => {
+        // Handle error here
+      });
+    url = `http://localhost:8765/budget-service/budget/types`;
+    await Axios.get(url)
+      .then((payload:any) => {
+        props.setBudgetTypes(payload.data);
+      })
+      .catch((err:any) => {
+        // Handle error here
+      });
+  }
+
+  async function getUserIncomesInfo(userId:number) {
+    // Get user incomes
+    let url = `http://localhost:8765/income-service/income/user/${userId}`;
+    await Axios.get(url)
+      .then((payload:any) => {
+        props.setIncomes(payload.data);
+      })
+      .catch((err:any) => {
+        // Handle error here
+      });
+    url = `http://localhost:8765/income-service/income/types`;
+    await Axios.get(url)
+      .then((payload:any) => {
+        props.setIncomeTypes(payload.data);
+      });
   }
 
   async function logIn() {
-    const url = 'http://localhost:8080/login';
+    const url = 'http://localhost:8765/user-service/login';
     await Axios.post(url, {
       username: usernameField,
       password: pwField,
@@ -96,12 +138,19 @@ export function Login(props: ILoginProps) {
       props.updateUserInfo(payload.data)
       // Call the function to retrieve all user expenses information
       getUserExpensesInfo(payload.data.id);
+      // Get user budgets information
+      getUserBudgetsInfo(payload.data.id);
+      // Get user incomes information
+      getUserIncomesInfo(payload.data.id);
     }).catch(err => {
       setUsernameError(true);
       setUsernameErrorTxt('');
       setPwError(true);
       setPwErrorTxt('Incorrect Username or Password!');
     });
+    // After all information is stored, head user to the overview page
+    props.userIncomes.incomeTypes.length > 1 && props.updateUserLoggedIn(true);
+    props.handleClose();    
   }
 
   const handleUsernameInput = (e: any) => {
@@ -192,7 +241,9 @@ export function Login(props: ILoginProps) {
 const mapStateToProps = (state: IState) => {
   return {
     user: state.user,
-    userExpenses:state.userExpenses
+    userExpenses:state.userExpenses,
+    userBudgets:state.userBudgets,
+    userIncomes:state.userIncomes
   }
 }
 
@@ -203,7 +254,11 @@ const mapDispatchToProps = {
   setExpenses: setExpenses,
   setExpenseTypes: setExpenseTypes,
   setThisMonthExpenses: setThisMonthExpenses,
-  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth
+  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth,
+  setBudgets: setBudgets,
+  setBudgetTypes: setBudgetTypes,
+  setIncomes: setIncomes,
+  setIncomeTypes: setIncomeTypes
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

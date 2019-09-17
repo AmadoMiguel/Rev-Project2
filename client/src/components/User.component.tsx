@@ -4,18 +4,35 @@ import Axios from 'axios';
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import '../App.css';
-import { IState, IUserState, IUiState } from '../redux';
+import { IState, IUserState, IUiState, IBudgetsState, IIncomesState, IExpensesState } from '../redux';
 import { updateUserInfo } from '../redux/actions/user.actions';
 import ChangePw from './ChangePWDialog';
 import MySnackbarContentWrapper from './SnackBarComponent';
 import { User } from '../models/User';
-import { updateUserLoggedIn } from '../redux/actions';
+import { updateUserLoggedIn, setExpenses, setThisMonthExpenses, setExpensesTotal } from '../redux/actions';
+import { Expense } from '../models/Expense';
+import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
+import { Income } from '../models/Income';
+import { Budget } from '../models/Budget';
+import { setBudgets } from '../redux/actions/budgets.actions';
+import { setThisMonthExpensesTotal, setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
+import { setIncomes } from '../redux/actions/incomes.actions';
 
 interface IUserAcct {
   user: IUserState;
   ui: IUiState;
   updateUserInfo: (userInfo: User) => void;
   updateUserLoggedIn: (val: boolean) => void;
+  userExpenses: IExpensesState;
+  setExpenses: (expenses:Expense[]) => void;
+  setThisMonthExpenses: (thisMonthExpenses:Expense[]) => void;
+  setExpensesTotal: (expensesTotal:number) => void;
+  setThisMonthExpensesTotal: (thisMonthExpensesTotal:number) => void;
+  setThisYearExpensesTotalByMonth: (thisYearExpensesTotalByMonth:MonthExpensesTotal[]) => void;
+  userBudgets: IBudgetsState;
+  setBudgets: (budgets:Budget[]) => void;
+  userIncomes: IIncomesState;
+  setIncomes: (incomes:Income[]) => void;
 }
 
 export function User(props: IUserAcct) {
@@ -182,7 +199,6 @@ export function User(props: IUserAcct) {
 
   }
 
-
   const handleChange = (name: string) => (event: { target: { checked: any; }; }) => {
     if (name === 'selectAll' && !toDelete.selectAll)
       handleSelectAll(event.target.checked);
@@ -194,30 +210,36 @@ export function User(props: IUserAcct) {
   async function handleDelete() {
 
     if (toDelete.budget) {
-      const url = `http://localhost:8080/user/budget/${props.user.userInfo.id}`;
+      const url = `http://localhost:8765/budget-service/user/budget/${props.user.userInfo.id}`;
       await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
-
+        // Remove all budgets from redux
+        props.setBudgets([]);
         setOpenDelete(true);
-
       })
     }
     if (toDelete.expenses) {
-      const url = `http://localhost:8080/expense/user/expense/${props.user.userInfo.id}`;
+      const url = `http://localhost:8765/expense-service/expense/user/expense/${props.user.userInfo.id}`;
       await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+        // Remove all expenses info from redux
+        props.setExpenses([]);
+        props.setExpensesTotal(0);
+        props.setThisMonthExpenses([]);
+        props.setThisMonthExpensesTotal(0);
+        props.setThisYearExpensesTotalByMonth([]);
         setOpenDelete(true);
       });
-
     }
     if (toDelete.income) {
-      const url = `http://localhost:8080/user/income/${props.user.userInfo.id}`;
+      const url = `http://localhost:8765/income-service/user/income/${props.user.userInfo.id}`;
       await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+        // Remove all incomes from redux
+        props.setIncomes([]);
         setOpenDelete(true);
       });
     }
   }
 
   return (
-
     <Grid container style={{ textAlign: 'center', width: '100%' }}>
       <Grid item xs={12}>
         <Paper style={{
@@ -250,11 +272,8 @@ export function User(props: IUserAcct) {
                 variant="filled"
                 style={{ width: '200px', margin: '10px' }}
                 InputProps={{
-                  endAdornment: <InputAdornment position="end" onClick={editFname}><Edit /></InputAdornment>,
-
-
+                  endAdornment: <InputAdornment position="end" onClick={editFname}><Edit /></InputAdornment>
                 }}
-
               /></div>}
           {updateLname ?
             <div>
@@ -456,12 +475,22 @@ export function User(props: IUserAcct) {
 const mapStateToProps = (state: IState) => {
   return {
     user: state.user,
-    ui: state.ui
+    ui: state.ui,
+    userExpenses: state.userExpenses,
+    userIncomes: state.userIncomes,
+    userBudgets: state.userBudgets
   }
 }
 const mapDispatchToProps = {
   updateUserLoggedIn: updateUserLoggedIn,
-  updateUserInfo: updateUserInfo
+  updateUserInfo: updateUserInfo,
+  setBudgets: setBudgets,
+  setExpenses: setExpenses,
+  setThisMonthExpenses: setThisMonthExpenses,
+  setExpensesTotal: setExpensesTotal,
+  setThisMonthExpensesTotal: setThisMonthExpensesTotal,
+  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth,
+  setIncomes: setIncomes
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(User);

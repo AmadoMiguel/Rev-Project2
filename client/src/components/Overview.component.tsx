@@ -7,28 +7,28 @@ import { Link } from 'react-router-dom';
 import { BarLoader } from 'react-spinners';
 import colors from '../assets/Colors';
 import Logo from '../assets/Logo.svg';
-import { IState, IUiState, IUserState, IExpensesState } from '../redux';
+import { IState, IUiState, IUserState, IExpensesState, IBudgetsState, IIncomesState } from '../redux';
 import LineGraph from './data/LineGraph';
 import MixedBarGraph from './data/MixedBarGraph';
 import MixedLineGraph from './data/MixedLineGraph';
 import { setExpenses, setExpenseTypes, setThisMonthExpenses, setExpensesTotal, setThisMonthExpensesTotal } from '../redux/actions';
+import { Budget } from '../models/Budget';
+import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
+import { Income } from '../models/Income';
+import { Expense } from '../models/Expense';
 
 interface IHomeProps {
   user: IUserState;
   ui: IUiState;
   userExpenses:IExpensesState;
-  setExpenses: (expenses:any) => void;
-  setExpenseTypes: (expenseTypes:any) => void;
-  setThisMonthExpenses: (thisMonthExpenses:any) => void;
-  setExpensesTotal: (expensesTotal:number) => void;
-  setThisMonthExpensesTotal: (thisMonthExpensesTotal:number) => void;
+  userBudgets: IBudgetsState;
+  userIncomes: IIncomesState;
 }
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   div_container: {
     opacity: 0.85,
-    padding: '40px 100px 20px 100px',
-    // borderBottom: `2px solid ${colors.darkGreen}`
+    padding: '40px 100px 20px 100px'
   },
   div_container_mobile: {
     width: '100%',
@@ -79,25 +79,17 @@ const StyledTableCell = withStyles((theme: Theme) =>
 
 function Overview(props: IHomeProps) {
   const classes = useStyles();
-  const [incomes, setIncomes] = useState();
-  const [budgets, setBudgets] = useState();
-  const [currentMonthExpenses, setCurrentMonthExpenses] = useState();
   const [expMonths, setExpMonths] = useState(0);
-  const [types, setTypes] = useState([]);
-
   const [underBudgets, setUnderBudgets] = useState();
   const [overBudgets, setOverBudgets] = useState();
-
   const [expanded, setExpanded] = React.useState<string | false>('panel1');
-
   const [isLoading, setIsLoading] = useState(false);
   const [totals, setTotals] = useState({
     monthlyExpense: 0,
     income: 0,
     budget: 0,
     yearlyExpense: 0
-  })
-
+  });
   const [monthlyExpenses, setMonthlyExpenses] = useState();
   const [months, setMonths] = useState();
 
@@ -108,9 +100,8 @@ function Overview(props: IHomeProps) {
   useEffect(() => {
     
     if (props.user.isLoggedIn) {
-      // getAllTypes();
       setIsLoading(true);
-      fetchAllData();
+      prepareData();
     }
     // Load budgets, incomes, expenses
 
@@ -119,23 +110,32 @@ function Overview(props: IHomeProps) {
   useEffect(() => {
 
     let budgetTotal = 0;
-    if (budgets) {
-      budgetTotal = budgets.map((i: any) => i.amount).reduce((a: any, b: any) => a + b);
+    if ((props.userBudgets.budgets.length == 1 && props.userBudgets.budgets[0].id != 0) || 
+    props.userBudgets.budgets.length > 1) {
+      budgetTotal = props.userBudgets.budgets.map((i: Budget) => i.amount).reduce((a: any, b: any) => a + b);
     }
 
     let expensesTotal = 0;
-    if (props.userExpenses.thisMonthExpenses) {
-      expensesTotal = props.userExpenses.thisMonthExpenses.map((i: any) => i.amount).reduce((a: any, b: any) => a + b);
+    if ((props.userExpenses.thisMonthExpenses.length == 1 &&
+      props.userExpenses.thisMonthExpenses[0].id != 0) ||
+      props.userExpenses.thisMonthExpenses.length > 1) {
+        expensesTotal = props.userExpenses.thisMonthExpenses
+        .map((i: Expense) => i.amount).reduce((a: any, b: any) => a + b);
     }
 
     let incomeTotal = 0;
-    if (incomes) {
-      incomeTotal = incomes.map((i: any) => i.amount).reduce((a: any, b: any) => a + b);
+    if ((props.userIncomes.incomes.length == 1 && props.userIncomes.incomes[0].id != 0) || 
+    props.userIncomes.incomes.length > 1) {
+      incomeTotal = props.userIncomes.incomes.map((i: Income) => i.amount)
+      .reduce((a: any, b: any) => a + b);
     }
 
     let yearlyExp = 0;
-    if (monthlyExpenses) {
-      yearlyExp = monthlyExpenses.reduce((a: any, b: any) => a + b);
+    if ((props.userExpenses.thisYearTotalExpensesByMonth.length == 1 && 
+      props.userExpenses.thisYearTotalExpensesByMonth[0].month != "") ||
+      props.userExpenses.thisYearTotalExpensesByMonth.length > 1) {
+        yearlyExp = props.userExpenses.thisYearTotalExpensesByMonth
+        .map((i: MonthExpensesTotal) => i.total).reduce((a: any, b: any) => a + b);
     }
 
     calcOverages();
@@ -146,50 +146,27 @@ function Overview(props: IHomeProps) {
       income: incomeTotal,
       budget: budgetTotal
     })
-  }, [props.userExpenses.thisMonthExpenses, budgets, incomes, monthlyExpenses])
+  }, [props.userExpenses.thisMonthExpenses, props.userBudgets.budgets, 
+    props.userIncomes.incomes, props.userExpenses.thisYearTotalExpensesByMonth])
 
-  
-  async function fetchAllData() {
-    let url = `http://localhost:8080/income/user/${props.user.userInfo.id}`;
-    await Axios.get(url)
-      .then((payload: any) => {
-        // console.log(payload.data);
-        payload.data.length > 0 && setIncomes(payload.data);
-      }).catch((err: any) => {
-        // Handle error by displaying something else
-      });
-    url = `http://localhost:8080/budget/user/${props.user.userInfo.id}`;
-    await Axios.get(url)
-      .then((payload: any) => {
-        if (payload.data.length != 0) {
-          payload.data.length > 0 && setBudgets(payload.data);
-        }
-      }).catch((err: any) => {
-        // Handle error by displaying something else
-      });
-    url = `http://localhost:8080/expense/user/${props.user.userInfo.id}/yearly`;
-    await Axios.get(url)
-      .then((payload: any) => {
-        let arrMonth: string[] = [];
-        let arrTot: number[] = [];
-        if (payload.data.length != 0) {
-          for (let i = 0; i < payload.data.length; i++) {
-            arrMonth.push(payload.data[i].month);
-            arrTot.push(payload.data[i].total);
-          }
-          //arrTot.reverse();
-          //arrMonth.reverse();
-          setMonthlyExpenses(arrTot);
-          setMonths(arrMonth);
-          setExpMonths(payload.data.length);
-        }
-      }).catch((err: any) => {
-        // Handle error by displaying something else
-      });
-      if (props.userExpenses.expenses && 
-        props.userExpenses.thisMonthExpenses && props.userExpenses.expenseTypes){
-        calcOverages();
-      } 
+  async function prepareData() {
+
+    // Prepare total expenses by month
+    if ((props.userExpenses.thisYearTotalExpensesByMonth.length == 0 &&
+    props.userExpenses.thisYearTotalExpensesByMonth[0].month != "") ||
+    props.userExpenses.thisMonthExpenses.length > 1) {
+      let arrMonth: string[] = [];
+      let arrTot: number[] = [];
+      for (let monthlyTot of props.userExpenses.thisYearTotalExpensesByMonth) {
+          arrMonth.push(monthlyTot.month);
+          arrTot.push(monthlyTot.total);
+      }
+      setMonthlyExpenses(arrTot);
+      setMonths(arrMonth);
+      setExpMonths(props.userExpenses.thisYearTotalExpensesByMonth.length);
+    }
+    // Check if data was fetched properly from the login component
+    calcOverages();
   }
 
   function calcOverages() {
@@ -237,24 +214,25 @@ function Overview(props: IHomeProps) {
     setIsLoading(false);
   }
 
-
   function createBudgetGraphData() {
-    if (!budgets) return undefined;
-    return budgets.map((i: any) => {
+    if ((props.userBudgets.budgets.length == 1 && props.userBudgets.budgets[0].id == 0) || 
+    props.userIncomes.incomes.length == 0) return undefined;
+    return props.userBudgets.budgets.map((i: Budget) => {
       return { key: i.budgetType.type, data: i.amount }
     });
   }
 
   // User expenses information connected to redux
   function createExpenseGraphData() {
-    if (!props.userExpenses.thisMonthExpenses) return undefined;
+    if ((props.userExpenses.thisMonthExpenses.length == 1 && 
+        props.userExpenses.thisMonthExpenses[0].id == 0) || 
+        props.userExpenses.thisMonthExpenses.length == 0) return undefined;
     return props.userExpenses.thisMonthExpenses.map((i: any) => {
       return { key: i.expenseType.type, data: i.amount }
     });
   }
 
   function createGraphLabels() {
-    if (!props.userExpenses.expenseTypes) return undefined;
     return props.userExpenses.expenseTypes.map((i: any) => {
       return i.type;
     });
@@ -277,8 +255,7 @@ function Overview(props: IHomeProps) {
 
   return (
     (props.user.isLoggedIn ? (
-      (isLoading && (!props.userExpenses.expenseTypes) && (!props.userExpenses.expenses)
-       && (!budgets) && (!incomes) && (!months) ? (
+      (isLoading ? (
         <div style={{ margin: 'auto', height: '100vh', textAlign: 'center' }}>
           <div style={{ marginTop: '40vh', display: 'inline-block' }}>
             <BarLoader width={250} color={colors.offWhite} loading={isLoading} />
@@ -304,9 +281,13 @@ function Overview(props: IHomeProps) {
                       item xs={props.ui.isMobileView ? 12 : 6}>
                       <Paper className={classes.graph_paper}>
                         <div style={{ display: 'inline-block', textAlign: 'center' }}>
-                          <i style={{ color: 'grey', fontSize: '14px' }}>Red bars indicate an over-budget category.</i> <br />
+                          <i style={{ color: 'grey', fontSize: '14px' }}>
+                            Red bars indicate an over-budget category.
+                            </i> <br />
                         </div>
-                        <MixedLineGraph isMobileView={props.ui.isMobileView} budgetData={createBudgetGraphData()}
+                        <MixedLineGraph 
+                          isMobileView={props.ui.isMobileView} 
+                          budgetData={createBudgetGraphData()}
                           expenseData={createExpenseGraphData()} 
                           labels={createGraphLabels()} />
                       </Paper>
@@ -319,7 +300,9 @@ function Overview(props: IHomeProps) {
                       <h2 style={{ marginTop: props.ui.isMobileView ? undefined : '0px' }}>
                         Here's how you're stacking up.
                         </h2>
-                      {!currentMonthExpenses && (
+                      {!((props.userExpenses.thisMonthExpenses.length == 1 &&
+                        props.userExpenses.thisMonthExpenses[0].id != 0) ||
+                        props.userExpenses.thisMonthExpenses.length > 1) && (
                         <>
                           <h4>Start adding expenses to see a detailed review.</h4>
                           <Button size={props.ui.isMobileView ? 'small' : undefined}
@@ -365,7 +348,9 @@ function Overview(props: IHomeProps) {
                       )}
                       {overBudgets && (
                         <>
-                          <h3>Some of your spending needs <span style={{ color: colors.orange }}>attention</span>.</h3>
+                            <h3>
+                              Some of your spending needs <span style={{ color: colors.orange }}>attention</span>.
+                            </h3>
                           {`Go to your  `}
                           <Button size={props.ui.isMobileView ? 'small' : undefined}
                             style={{
@@ -424,9 +409,12 @@ function Overview(props: IHomeProps) {
                       }}
                       item xs={props.ui.isMobileView ? 12 : 6}>
                       <Paper className={classes.graph_paper}>
-                        <MixedBarGraph isMobileView={props.ui.isMobileView} budgets={budgets}
-                          expenses={props.userExpenses.thisMonthExpenses} incomes={incomes} 
-                          labels={createGraphLabels()} />
+                        <MixedBarGraph 
+                        isMobileView={props.ui.isMobileView} 
+                        budgets={props.userBudgets.budgets}
+                        expenses={props.userExpenses.thisMonthExpenses} 
+                        incomes={props.userIncomes.incomes} 
+                        labels={createGraphLabels()} />
                       </Paper>
                     </Grid>
                     <Grid
@@ -434,10 +422,12 @@ function Overview(props: IHomeProps) {
                         margin: 0
                       }}
                       item xs={props.ui.isMobileView ? 12 : 6}>
-                      {totals.income >= totals.budget && totals.monthlyExpense <= totals.budget && totals.income !== 0 ? (
+                      {totals.income >= totals.budget && totals.monthlyExpense <= totals.budget 
+                      && totals.income !== 0 ? (
                         <>
                           <h2>The math adds up.</h2>
-                          <h3>You did a good job of choosing a practical budget that fits your income and keeps expenses low.</h3>
+                          <h3>You did a good job of choosing a practical budget that fits your income and 
+                            keeps expenses low.</h3>
                         </>
                       ) : (
                           <>
@@ -514,25 +504,25 @@ function Overview(props: IHomeProps) {
                 </ExpansionPanelSummary>
                 <ExpansionPanelDetails>
                   <Grid className={classes.grid_container} container>
-                    <Grid style={{
-                      margin: 0
-                    }}
+                    <Grid style={{ margin: 0 }}
                       item xs={props.ui.isMobileView ? 12 : 6}>
-                      {/* <Paper className={classes.graph_paper}>
+                      <Paper className={classes.graph_paper}>
                         <LineGraph data={0} months={months}
                           expenseTotals={monthlyExpenses}
                           income={createLineStaticIncome()} budget={createLineStaticBudget()} />
-                      </Paper> */}
+                      </Paper>
                     </Grid>
                     <Grid
                       style={{
                         margin: 0
                       }}
                       item xs={props.ui.isMobileView ? 12 : 6}>
-                      {totals.income * 12 >= totals.budget * 12 && totals.yearlyExpense <= totals.budget * 12 && totals.income !== 0 ? (
+                      {totals.income * 12 >= totals.budget * 12 && 
+                      totals.yearlyExpense <= totals.budget * 12 && totals.income !== 0 ? (
                         <>
                           <h2>You had a good year.</h2>
-                          <h3>All your expenses have been balanced against your budget with income to spare. Good job!</h3>
+                          <h3>All your expenses have been balanced against your budget with income to spare. 
+                            Good job!</h3>
                         </>
                       ) : (
                           <>
@@ -540,7 +530,8 @@ function Overview(props: IHomeProps) {
                               <>
                                 <h2>It looks like you may be in debt.</h2>
                                 {totals.income < totals.budget
-                                  && (<h4>You're yearly budget was over your income.<br />This can give a false sense of security.</h4>)}
+                                  && (<h4>You're yearly budget was over your income.<br />
+                                  This can give a false sense of security.</h4>)}
                                 {totals.monthlyExpense > totals.budget
                                   && (<h4>You didn't meet your budget this year, but there's always the next.</h4>)}
                                 {`Go to your  `}
@@ -626,15 +617,10 @@ const mapStateToProps = (state: IState) => {
   return {
     user: state.user,
     ui: state.ui,
-    userExpenses:state.userExpenses
+    userExpenses:state.userExpenses,
+    userBudgets: state.userBudgets,
+    userIncomes: state.userIncomes
   }
 }
 
-const mapDispatchToProps = {
-  setExpenses: setExpenses,
-  setExpenseTypes: setExpenseTypes,
-  setThisMonthExpenses: setThisMonthExpenses,
-  setExpensesTotal: setExpensesTotal,
-  setThisMonthExpensesTotal: setThisMonthExpensesTotal
-}
-export default connect(mapStateToProps,mapDispatchToProps)(Overview);
+export default connect(mapStateToProps)(Overview);

@@ -7,13 +7,14 @@ import '../App.css';
 import { IState, IUiState, IUserState } from '../redux';
 import { updateUserInfo, updateUserLoggedIn } from '../redux/actions';
 import { Redirect } from 'react-router';
+import { User } from '../models/User';
 
 interface IRegisterProps {
   history: any;
   user: IUserState;
   ui: IUiState;
   updateUserLoggedIn: (val: boolean) => void;
-  updateUserInfo: (payload: any) => void;
+  updateUserInfo: (userInfo: User) => void;
 }
 
 export function Register(props: IRegisterProps) {
@@ -92,7 +93,7 @@ export function Register(props: IRegisterProps) {
       setEmailErrorTxt('Please enter a valid email address');
     }
     else {
-      const url = 'http://localhost:8080/register/verifyUser';
+      const url = 'http://localhost:8765/user-service/register/verifyUser';
       await Axios.post(url, {
         username: usernameField,
         email: emailField
@@ -115,7 +116,7 @@ export function Register(props: IRegisterProps) {
   }
 
   async function registerUser() {
-    const url = 'http://localhost:8080/register';
+    const url = 'http://localhost:8765/user-service/register';
     await Axios.post(url, {
       username: usernameField,
       password: pwField,
@@ -123,7 +124,7 @@ export function Register(props: IRegisterProps) {
       lastname: lnameField,
       email: emailField
     }).then(payload => {
-      const login = 'http://localhost:8080/login';
+      const login = 'http://localhost:8765/user-service/login';
       Axios.post(login, {
         username: usernameField,
         password: pwField,

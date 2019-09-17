@@ -169,6 +169,8 @@ function Expenses(props: IExpenseProps) {
             props.setExpenses([payload.data]);
           } else {
             props.setExpenses(props.userExpenses.expenses.concat(payload.data));
+            // TODO: ADD THE EXPENSE TO THE MONTH TOTAL IN THE YEARLY EXPENSES ARRAY
+            
           }
           // Add it to the monthly expenses if the month of the new expense is the current month
           const currentMonth = new Date().getMonth();

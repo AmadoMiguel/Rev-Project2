@@ -5,14 +5,17 @@ import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import '../App.css';
 import { IState, IUserState, IUiState } from '../redux';
-import { updateUserInfo } from '../redux/actions';
+import { updateUserInfo } from '../redux/actions/user.actions';
 import ChangePw from './ChangePWDialog';
 import MySnackbarContentWrapper from './SnackBarComponent';
+import { User } from '../models/User';
+import { updateUserLoggedIn } from '../redux/actions';
 
 interface IUserAcct {
   user: IUserState;
   ui: IUiState;
-  updateUserInfo: (payload: any) => void;
+  updateUserInfo: (userInfo: User) => void;
+  updateUserLoggedIn: (val: boolean) => void;
 }
 
 export function User(props: IUserAcct) {
@@ -29,9 +32,6 @@ export function User(props: IUserAcct) {
   const [openUp, setOpenUp] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
 
-  function work(x: string) {
-    return (<p style={{ fontWeight: 'bolder' }}>x</p>)
-  }
   function handleOpen() {
     setOpen(true);
   }
@@ -138,13 +138,13 @@ export function User(props: IUserAcct) {
     setWasEdited(false);
   }
   async function updateUser(body: any) {
-    const url = 'http://localhost:8080/update';
+    const url = 'http://localhost:8765/user-service/update';
     await Axios.patch(url, body, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+      props.updateUserLoggedIn(true);
       props.updateUserInfo({
-        isLoggedIn: true,
         id: props.user.userInfo.id,
-        first: updateFname ? fnameField : props.user.userInfo.firstName,
-        last: updateLname ? lnameField : props.user.userInfo.lastName,
+        firstName: updateFname ? fnameField : props.user.userInfo.firstName,
+        lastName: updateLname ? lnameField : props.user.userInfo.lastName,
         email: updateEmail ? emailField : props.user.userInfo.email,
         username: updateUsername ? username : props.user.userInfo.username,
         token: props.user.userInfo.token
@@ -460,6 +460,7 @@ const mapStateToProps = (state: IState) => {
   }
 }
 const mapDispatchToProps = {
+  updateUserLoggedIn: updateUserLoggedIn,
   updateUserInfo: updateUserInfo
 }
 

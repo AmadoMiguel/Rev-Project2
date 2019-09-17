@@ -24,10 +24,6 @@ public class IncomeService {
 		this.incomeTypeRepository = incomeTypeRepository;
 	}
 
-//	@Transactional
-//	public List<income> getAllincomes() {
-//		return (List<income>) incomeRepository.findAll();
-//	}
 	public Optional<Income> getById(int id) {
 		return incomeRepository.findById(id);
 	}
@@ -48,12 +44,12 @@ public class IncomeService {
 		incomeRepository.deleteById(id);
 	}
 
-	public boolean addIncome(Income income) {
-		return incomeRepository.save(income) != null;
+	public Income addIncome(Income income) {
+		return incomeRepository.save(income);
 	}
 
-	public boolean updateIncome(Income income) {
-		return incomeRepository.save(income) != null;
+	public Income updateIncome(Income income) {
+		return incomeRepository.save(income);
 	}
 
 	public void deleteByUserId(int userId) {

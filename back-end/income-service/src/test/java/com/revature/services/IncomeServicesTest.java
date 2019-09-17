@@ -79,7 +79,7 @@ public class IncomeServicesTest {
 //		Define behavior for income repository method
 		when(incomeRepositoryMock.save(fakeIncome)).thenReturn(fakeIncome);
 //		Create assertion
-		assertThat(incomeServiceMock.addIncome(fakeIncome)).isTrue();
+		assertThat(incomeServiceMock.addIncome(fakeIncome)).isEqualTo(fakeIncome);
 	}
 	
 	@Test
@@ -89,7 +89,7 @@ public class IncomeServicesTest {
 //		Define behavior for income repository method
 		when(incomeRepositoryMock.save(fakeIncome)).thenReturn(fakeIncome);
 //		Create assertion
-		assertThat(incomeServiceMock.updateIncome(fakeIncome)).isTrue();
+		assertThat(incomeServiceMock.updateIncome(fakeIncome)).isEqualTo(fakeIncome);
 	}
 	
 }

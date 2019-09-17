@@ -1,17 +1,16 @@
-import React, { Fragment } from 'react';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { Container, Paper, TextField, InputAdornment, IconButton } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-import { Paper, TextField, Container, InputAdornment } from '@material-ui/core';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import React, { Fragment, useEffect } from 'react';
 import { Row } from 'reactstrap';
-import Axios from 'axios';
+import AddIcon from '@material-ui/icons/AddCircle';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -27,10 +26,10 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export default function NewIncome(props: any) {
-  const classes = useStyles();
+  const classes = useStyles(props);
   const [state, setState] = React.useState({
     open: false,
-    type: 0, //incomeType: {id: 0, type: ''},
+    type: 0,
     description: '',
     amount: 0,
     formFilled: true
@@ -39,18 +38,36 @@ export default function NewIncome(props: any) {
   const handleChange = (name: keyof typeof state) => (
     event: React.ChangeEvent<{ value: unknown }>,
   ) => {
-    setState({ ...state, [name]: event.target.value });
+    setState({
+      ...state,
+      [name]: event.target.value
+    });
   };
 
   function handleClickOpen() {
-    setState({ type: 0, description: '', amount: 0, open: true, formFilled: true });
+    setState({
+      type: 0,
+      description: '', amount: 0, open: true, formFilled: true
+    });
   }
 
+  useEffect(() => {
+    if (props.tableView) {
+      setState({ ...state, type: props.type });
+    }
+  });
 
   function handleSubmit() {
+    // Check if form is filled properly
     if (state.type && state.description && state.amount) {
-      props.createIncome(props.types.find((type: any) => type.id == state.type), state.description, state.amount);
-
+      // If user is in table view, the expense type is passed from the parent
+      props.tableView ?
+        props.createIncome(props.types.find((type: any) => type.type == state.type),
+          state.description, state.amount)
+        :
+        props.createIncome(props.types.find((type: any) => type.id == state.type),
+          state.description, state.amount)
+      // Close popover
       handleClose();
     } else {
       setState({ ...state, formFilled: false });
@@ -61,21 +78,34 @@ export default function NewIncome(props: any) {
     setState({ ...state, open: false });
   }
 
-
   return (
-    <div>
-      <Fragment>
-        <Button style={{ display: "inline-block" }} onClick={handleClickOpen}>Add Income</Button>
-        <Dialog disableBackdropClick disableEscapeKeyDown open={state.open} onClose={handleClose}>
-          <DialogContent>
-            <form className={classes.container}>
-              <FormControl className={classes.formControl}>
+    <Fragment>
+      <Button 
+      color="secondary" 
+      style={{ display: 'inline-block',margin:"5px" }} 
+      onClick={handleClickOpen} aria-label="add">
+        <AddIcon />
+      </Button>
+      <Dialog disableBackdropClick disableEscapeKeyDown open={state.open} onClose={handleClose}>
+        <DialogContent>
+          <form className={classes.container}>
+            <FormControl className={classes.formControl}>
+              {/* In each field, is checked if it's properly filled before sending the request */}
+              <Paper>
                 <Container style={{ textAlign: "center" }}>
-                  <Row><h4>Add Monthly Income</h4></Row>
-                  <Row className="new-income-form">
+                  <Row>
+                    <h4>
+                      {
+                        (!props.tableView) ?
+                          props.view ? "Add Income" : `Add New Income` :
+                          `Add ${props.type} Income`
+                      }
+                    </h4>
+                  </Row>
+                  <Row className="new-expense-form">
                     <TextField
                       name="amount"
-                      className="new-income-form"
+                      className="new-expense-form"
                       placeholder="0.00"
                       label={
                         state.formFilled ?
@@ -99,11 +129,11 @@ export default function NewIncome(props: any) {
                       }}
                     />
                   </Row>
-                  <Row className="new-income-form">
+                  <Row className="new-expense-form">
                     <TextField
                       name="description"
-                      className="new-income-form"
-                      placeholder="description"
+                      className="new-expense-form"
+                      placeholder="A brief description of the income..."
                       error={state.formFilled ?
                         false
                         :
@@ -121,47 +151,60 @@ export default function NewIncome(props: any) {
                       }
                       type="text"
                       multiline={true}
-                      rows={5}
+                      rows={props.view ? 4 : 5}
                       onChange={handleChange("description")} />
                   </Row>
-                  <Row className="new-income-form">
-                    <Select
-                      value={state.type}
-                      onChange={handleChange('type')}
-                      input={<Input id="income-type" />}
-                      error={state.formFilled ?
-                        false
-                        :
-                        state.type ?
-                          false :
-                          true}
-                    >
-                      <MenuItem value={0}>
-                        <em style={
-                          { color: state.formFilled ? "black" : state.type ? "black" : "red" }
-                        }>
-                          {state.formFilled ?
-                            props.view ?
-                              "Type" :
-                              "Select income type" :
-                            "Required"}
-                        </em>
-                      </MenuItem>
-                      {props.types.map((t: any) => (
-                        <MenuItem key={t.id} value={t.id}>{t.type}</MenuItem>
-                      ))}
-                    </Select>
-                  </Row>
+                  {
+                    (!props.tableView) &&
+                    <Row className="new-expense-form">
+                      <Select
+                        value={state.type}
+                        onChange={handleChange('type')}
+                        input={<Input id="expense-type" />}
+                        error={state.formFilled ?
+                          false
+                          :
+                          state.type ?
+                            false :
+                            true}
+                      >
+                        <MenuItem value={0}>
+                          <em style={
+                            { color: state.formFilled ? "black" : state.type ? "black" : "red" }
+                          }>
+                            {state.formFilled ?
+                              props.view ?
+                                "Type" :
+                                "Select income type" :
+                              "Required"}
+                          </em>
+                        </MenuItem>
+                        {props.types.map((t: any) => (<MenuItem key={t.id} value={t.id}>{t.type}</MenuItem>)
+                        )}
+                      </Select>
+                    </Row>
+                  }
                 </Container>
-              </FormControl>
-            </form>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleSubmit} >Ok</Button>
-            <Button onClick={handleClose}>Cancel</Button>
-          </DialogActions>
-        </Dialog>
-      </Fragment>
-    </div>
+              </Paper>
+            </FormControl>
+          </form>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={
+              // Function call to send the request for creating new income
+              handleSubmit
+            }
+            color="primary">
+            Ok
+            </Button>
+          <Button
+            onClick={handleClose}
+            color="secondary">
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Fragment>
   );
 }

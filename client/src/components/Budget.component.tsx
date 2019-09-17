@@ -5,13 +5,16 @@ import { connect } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
 import { BarLoader } from 'react-spinners';
 import colors from '../assets/Colors';
-import { IState, IUiState, IUserState } from '../redux';
+import { IState, IUiState, IUserState, IBudgetsState } from '../redux';
 import BudgetTable from './BudgetTable';
 import DonutGraph from './data/DonutGraph';
 import HorizontalBarGraph from './data/HorizontalBarGraph';
 import VerticalBarGraph from './data/VerticalBarGraph';
 import { CreateBudgetStepper } from './forms/CreateBudgetStepper';
 import MySnackbarContentWrapper from './SnackBarComponent';
+import { Budget } from '../models/Budget';
+import { setBudgets } from '../redux/actions/budgets.actions';
+
 
 interface HorizontalTabPanelProps {
   children?: React.ReactNode;
@@ -19,9 +22,11 @@ interface HorizontalTabPanelProps {
   value: any;
 }
 
-interface IBudgetProps {
+export interface IBudgetProps {
   user: IUserState;
   ui: IUiState;
+  userBudgets: IBudgetsState;
+  setBudgets: (budgets:Budget[]) => void;
 }
 
 function HorizontalTabPanel(props: HorizontalTabPanelProps) {
@@ -55,12 +60,9 @@ export function Budget(props: IBudgetProps) {
       display: 'inline-block'
     }
   }
-
   const [isCreatingBudget, setIsCreatingBudget] = useState(false);
-  const [budgets, setBudgets] = useState();
   const [tableBudgets, setTableBudgets] = useState();
   const [budgetTotal, setBudgetTotal] = useState(0);
-  const [budgetTypes, setBudgetTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [snackBar, setSnackBar] = useState({
     openDelete: false,
@@ -75,52 +77,19 @@ export function Budget(props: IBudgetProps) {
       openUpdate: false,
       openCreate: false,
     })
-    if (props.user.isLoggedIn) {
-      // Load budget types from db
-      getAllTypes();
-
-      setIsLoading(true);
-
-      // Load budgets from db
-      getAllBudgets();
-    }
-  }, [props.user.isLoggedIn])
+  })
 
   useEffect(() => {
-    if (budgets) setBudgetTotal(budgets.map((num: any) => num.amount).reduce((a: any, b: any) => a + b))
-  }, [budgets])
+    if (props.userBudgets.budgets.length > 1) {
+      setBudgetTotal(props.userBudgets.budgets.map(
+        (num: any) => num.amount).reduce((a: any, b: any) => a + b));
+    }
+  }, [props.userBudgets.budgets])
 
-  async function getAllTypes() {
-    const url = `http://localhost:8080/budget/types`;
-    Axios.get(url)
-      .then((payload: any) => {
-        payload.data.length !== 0 && setBudgetTypes(payload.data);
-      }).catch((err: any) => {
-        // Handle error by displaying something else
-      });
-  }
-
-  async function getAllBudgets() {
-    const url = `http://localhost:8080/budget/user/${props.user.userInfo.id}`;
-    await Axios.get(url)
-      .then((payload: any) => {
-        if (payload.data.length != 0) {
-          payload.data.length !== 0 && setBudgets(payload.data);
-          payload.data.length !== 0 && setTableBudgets(payload.data.sort((a: any, b: any) => {
-            return b.budgetType.type < a.budgetType.type ? 1 : -1;
-          }));
-        }
-        setIsLoading(false);
-      }).catch((err: any) => {
-        setIsLoading(false);
-        // Handle error by displaying something else
-      });
-  }
-
-  async function updateBudget(data: any) {
+  async function updateBudget(budget: Budget) {
     setIsCreatingBudget(false);
-    const url = `http://localhost:8080/budget`;
-    await Axios.put(url, data)
+    const url = `http://localhost:8765/budget-service/budget`;
+    await Axios.put(url, budget)
       .then((payload: any) => {
         setIsLoading(false);
         setSnackBar({
@@ -128,10 +97,10 @@ export function Budget(props: IBudgetProps) {
           openDelete: false,
           openCreate: false,
           openUpdate: true
-        })
+        });
       }).catch((err: any) => {
         // Handle error by displaying something else
-        alert('Something went wrong. Please try again.')
+        alert('Something went wrong. Please try again.');
       });
   }
 
@@ -139,10 +108,14 @@ export function Budget(props: IBudgetProps) {
   async function createBudget(data: any) {
     setIsCreatingBudget(false);
     setIsLoading(true);
-    const url = `http://localhost:8080/budget`;
+    const url = `http://localhost:8765/budget-service/budget`;
     await Axios.post(url, data)
       .then((payload: any) => {
-        setBudgets(!budgets ? [payload.data] : budgets.concat(payload.data));
+        if (props.userBudgets.budgets.length == 1 && props.userBudgets.budgets[0].id == 0) {
+          props.setBudgets([payload.data]);
+        } else {
+          props.setBudgets(props.userBudgets.budgets.concat(payload.data));
+        }
         setTableBudgets(!tableBudgets ? [payload.data] : tableBudgets.concat(payload.data));
         setIsLoading(false);
         setSnackBar({
@@ -150,15 +123,15 @@ export function Budget(props: IBudgetProps) {
           openDelete: false,
           openCreate: true,
           openUpdate: false
-        })
+        });
       }).catch((err: any) => {
         // Handle error by displaying something else
-        alert('Something went wrong. Please try again.')
+        alert('Something went wrong. Please try again.');
       });
   }
 
   async function deleteBudget(id: number) {
-    const url = `http://localhost:8080/budget/delete/${id}`;
+    const url = `http://localhost:8765/budget-service/budget/delete/${id}`;
     Axios.delete(url)
       .then((payload: any) => {
         setSnackBar({
@@ -166,10 +139,10 @@ export function Budget(props: IBudgetProps) {
           openDelete: true,
           openCreate: false,
           openUpdate: false
-        })
+        });
       }).catch((err: any) => {
         // Handle error by displaying something else
-        alert('Something went wrong. Please try again.')
+        alert('Something went wrong. Please try again.');
       });
   }
 
@@ -190,29 +163,32 @@ export function Budget(props: IBudgetProps) {
     setIsLoading(true);
 
     ids.forEach(async (id: number) => await deleteBudget(id));
-    let filtered = budgets.filter((budget: any) => !ids.includes(budget.id));
-    setBudgets(filtered.length === 0 ? undefined : filtered)
+    let filtered = props.userBudgets.budgets.filter((budget: any) => !ids.includes(budget.id));
+    props.setBudgets(filtered.length === 0 ? [] : filtered);
 
     filtered = tableBudgets.filter((budget: any) => !ids.includes(budget.id));
     filtered.length === 0 && setTabIndex(0);
-    setTableBudgets(filtered.length === 0 ? undefined : filtered)
+    setTableBudgets(filtered.length === 0 ? undefined : filtered);
 
     setIsLoading(false);
   }
 
-  function handleUpdateBudget(data: any) {
+  function handleUpdateBudget(updatedBudget: Budget) {
     setIsLoading(true);
-    updateBudget(data);
+    updateBudget(updatedBudget);
 
-    let temp = budgets.map((budget: any) => {
-      return budget.id === data.id ? data : budget;
-    });
-    setBudgets(temp);
+    // Create a copy of the current user budgets
+    let budgetsCopy:Budget[] = props.userBudgets.budgets;
+    // Find the updated budget index
+    let updatedBudgetIndex = props.userBudgets.budgets.findIndex((budget:Budget) => 
+      budget.id === updatedBudget.id);
+    budgetsCopy[updatedBudgetIndex] = updatedBudget;
+    props.setBudgets(budgetsCopy);
 
-    temp = tableBudgets.map((budget: any) => {
-      return budget.id === data.id ? data : budget;
+    let tempTableBudgets = tableBudgets.map((budget: any) => {
+      return budget.id === updatedBudget.id ? updatedBudget : budget;
     })
-    setTableBudgets(temp);
+    setTableBudgets(tempTableBudgets);
   }
 
   function handleCreateBudget() {
@@ -224,22 +200,22 @@ export function Budget(props: IBudgetProps) {
   }
 
   function createGraphData() {
-    return budgets.map((i: any) => {
+    return props.userBudgets.budgets.map((i: any) => {
       return { key: i.budgetType.type, data: i.amount }
     });
   }
 
   function createGraphLabels() {
-    return budgetTypes.map((i: any) => {
+    return props.userBudgets.budgetTypes.map((i: any) => {
       return i.type;
     });
   }
 
   function handleElementClick(label: number) {
-    const type = budgetTypes.find((type: any) => type.type == label);
+    const type = props.userBudgets.budgetTypes.find((type: any) => type.type == label);
 
     if (type) {
-      const matchedBudgets = budgets.filter((budget: any) =>
+      const matchedBudgets = props.userBudgets.budgets.filter((budget: any) =>
         JSON.stringify(budget.budgetType) == JSON.stringify(type));
 
       setTableBudgets(matchedBudgets.sort((a: any, b: any) => b.budgetType.type - a.budgetType.type));
@@ -250,7 +226,8 @@ export function Budget(props: IBudgetProps) {
   return (
     <>
       {!props.user.isLoggedIn ? (
-        <div style={{ marginTop: '50px', marginRight: '10px', marginLeft: '10px', textAlign: 'center', color: colors.offWhite }}>
+        <div style={{ marginTop: '50px', marginRight: '10px', marginLeft: '10px', 
+                      textAlign: 'center', color: colors.offWhite }}>
           <h2 style={{ marginBottom: '40px' }}>
             Budgets allow you to easily set goals for yourself
             <br /> and see how your spending stacks up.
@@ -267,16 +244,21 @@ export function Budget(props: IBudgetProps) {
         </div>
       ) : (
           <>
-            {budgets && <h2 style={{ textAlign: 'center', color: colors.offWhite }}>Here's your monthly budget</h2>}
-            < Paper style={{
-              opacity: 0.85,
-              width: props.ui.isMobileView ? '90%' : '55%',
-              height: props.ui.isMobileView ? '95%' : '60%',
-              maxWidth: '90%',
-              maxHeight: '95%',
-              margin: '10px auto', padding: '20px 10px 20px 10px'
-            }}>
-              {!budgets ? (
+            {((props.userBudgets.budgets.length == 1 && props.userBudgets.budgets[0].id != 0)
+                || props.userBudgets.budgets.length > 1)
+              &&
+              <h2 style={{ textAlign: 'center', color: colors.offWhite }}>Here's your monthly budget</h2>}
+              < Paper style={{
+                opacity: 0.85,
+                width: props.ui.isMobileView ? '90%' : '55%',
+                height: props.ui.isMobileView ? '95%' : '60%',
+                maxWidth: '90%',
+                maxHeight: '95%',
+                margin: '10px auto', padding: '20px 10px 20px 10px'
+              }}>
+              {((props.userBudgets.budgets.length == 1 && props.userBudgets.budgets[0].id == 0)
+                || props.userBudgets.budgets.length == 0)  
+                ? (
                 <div style={{ textAlign: 'center' }}>
                   <b>Budgets allow you to set goals and easily visualize your limits. </b>
                   <br />
@@ -289,9 +271,11 @@ export function Budget(props: IBudgetProps) {
                       {isCreatingBudget ? (
                         <CreateBudgetStepper
                           isMobileView={props.ui.isMobileView} userId={props.user.userInfo.id}
-                          types={budgetTypes} handleSubmit={createBudget} handleCancel={handleCancelCreate} />
+                          types={props.userBudgets.budgetTypes} handleSubmit={createBudget} 
+                          handleCancel={handleCancelCreate} />
                       ) : (
-                          <Button style={{ marginBottom: '10px' }} onClick={() => setIsCreatingBudget(true)} size="large" color="secondary">
+                          <Button style={{ marginBottom: '10px' }} 
+                          onClick={() => setIsCreatingBudget(true)} size="large" color="secondary">
                             Create a Budget
                           </Button>
                         )}
@@ -314,7 +298,9 @@ export function Budget(props: IBudgetProps) {
                         >
                           <Tab style={{ color: colors.offWhite }} label="Donut Chart" {...a11yProps(0)} />
                           <Tab style={{ color: colors.offWhite }} label="Bar Chart" {...a11yProps(1)} />
-                          <Tab onClick={() => setTableBudgets(budgets)} style={{ color: colors.offWhite }} label="Table" {...a11yProps(2)} />
+                          <Tab onClick={() => setTableBudgets(props.userBudgets.budgets)} 
+                               style={{ color: colors.offWhite }} 
+                               label="Table" {...a11yProps(2)} />
                         </Tabs>
                       </AppBar>
                       <HorizontalTabPanel value={tabIndex} index={0}>
@@ -333,11 +319,13 @@ export function Budget(props: IBudgetProps) {
                             Monthly budget: ${budgetTotal}</h3>
                           <i style={{ color: 'grey', fontSize: '14px' }}>Click a category to amend your budget.</i> <br />
                           {props.ui.isMobileView ? (
-                            <VerticalBarGraph data={createGraphData()} labels={createGraphLabels()} important='Emergency'
+                            <VerticalBarGraph data={createGraphData()} 
+                              labels={createGraphLabels()} important='Emergency'
                               isMobileView={props.ui.isMobileView}
                               handleElementClick={handleElementClick} />
                           ) : (
-                              <HorizontalBarGraph data={createGraphData()} labels={createGraphLabels()} important='Emergency'
+                              <HorizontalBarGraph data={createGraphData()} 
+                                labels={createGraphLabels()} important='Emergency'
                                 isMobileView={props.ui.isMobileView}
                                 handleElementClick={handleElementClick} />
                             )}
@@ -347,17 +335,20 @@ export function Budget(props: IBudgetProps) {
                         <h3 style={{ marginTop: '-5px', marginBottom: '-1px' }}>
                           Monthly budget: ${budgetTotal}</h3>
                         <i style={{ color: 'grey', fontSize: '14px' }}>Select a budget to make changes.</i> <br />
-                        <BudgetTable data={tableBudgets} isMobileView={props.ui.isMobileView} types={budgetTypes}
-                          handleDeleteBudget={handleDeleteBudget}
-                          handleUpdateBudget={handleUpdateBudget} />
+                        <BudgetTable data={tableBudgets} isMobileView={props.ui.isMobileView} 
+                                     types={props.userBudgets.budgetTypes}
+                                     handleDeleteBudget={handleDeleteBudget}
+                                     handleUpdateBudget={handleUpdateBudget} />
                       </HorizontalTabPanel>
                       {isCreatingBudget ? (
                         <CreateBudgetStepper
                           isMobileView={props.ui.isMobileView} userId={props.user.userInfo.id}
-                          types={budgetTypes} handleSubmit={createBudget} handleCancel={handleCancelCreate} />
+                          types={props.userBudgets.budgetTypes} handleSubmit={createBudget} 
+                          handleCancel={handleCancelCreate} />
                       ) : (
                           <Fragment>
-                            <br /> <b style={{ marginTop: tabIndex === 2 ? '-15px' : '10px' }}>Missing something?</b> <br />
+                            <br /> <b style={{ marginTop: tabIndex === 2 ? '-15px' : '10px' }}>
+                              Missing something?</b> <br />
                             <Button
                               style={{ marginTop: '10px' }} size="small" color="secondary"
                               onClick={handleCreateBudget}>
@@ -421,8 +412,13 @@ export function Budget(props: IBudgetProps) {
 const mapStateToProps = (state: IState) => {
   return {
     user: state.user,
-    ui: state.ui
+    ui: state.ui,
+    userBudgets: state.userBudgets
   }
 }
 
-export default connect(mapStateToProps)(Budget);
+const mapDispatchToProps = {
+  setBudgets: setBudgets
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Budget);

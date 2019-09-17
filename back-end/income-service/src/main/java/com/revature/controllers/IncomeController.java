@@ -58,13 +58,13 @@ public class IncomeController {
 	}
 
 	@RequestMapping(value = "/income", method = RequestMethod.POST)
-	public HttpStatus insertIncome(@RequestBody Income income) {
-		return incomeService.addIncome(income) ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
+	public Income insertIncome(@RequestBody Income income) {
+		return incomeService.addIncome(income);
 	}
 
 	@RequestMapping(value = "/income", method = RequestMethod.PUT)
-	public HttpStatus updateIncome(@RequestBody Income income) {
-		return incomeService.updateIncome(income) ? HttpStatus.ACCEPTED : HttpStatus.BAD_REQUEST;
+	public Income updateIncome(@RequestBody Income income) {
+		return incomeService.updateIncome(income);
 	}
 
 	@RequestMapping(value = "/user/income/{id}", method = RequestMethod.DELETE)

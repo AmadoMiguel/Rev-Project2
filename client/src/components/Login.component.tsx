@@ -18,7 +18,6 @@ import { IncomeType } from '../models/IncomeType';
 import { setBudgets, setBudgetTypes } from '../redux/actions/budgets.actions';
 import { setIncomeTypes, setIncomes } from '../redux/actions/incomes.actions';
 
-// TODO: Add incomes and budgets
 interface ILoginProps {
   // User info
   user: IUserState;

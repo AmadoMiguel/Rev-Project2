@@ -106,7 +106,7 @@ public class IncomeControllerTest {
 //		Create fake income
 		Income fakeIncome = new Income(1, 1, null, "Wage", 1500);
 //		Define behavior for income service method
-		when(incomeServiceMock.addIncome(fakeIncome)).thenReturn(true);
+		when(incomeServiceMock.addIncome(fakeIncome)).thenReturn(fakeIncome);
 //		Handle object conversion
 		String incomeAsString = objectMapper.writeValueAsString(fakeIncome);
 		JSONObject incomeAsJson = new JSONObject(incomeAsString);
@@ -120,7 +120,7 @@ public class IncomeControllerTest {
 //		Get response as string
 		String responseAsString = response.getResponse().getContentAsString();
 //		Create assertion
-		assertThat(responseAsString).isEqualTo("\"CREATED\"");
+		assertThat(responseAsString).isEqualTo(incomeAsJson.toString());
 	}
 	
 	@Test
@@ -128,7 +128,7 @@ public class IncomeControllerTest {
 //		Create fake income
 		Income fakeIncome = new Income(1, 1, null, "Wage", 1500);
 //		Define behavior for income service method
-		when(incomeServiceMock.addIncome(fakeIncome)).thenReturn(true);
+		when(incomeServiceMock.updateIncome(fakeIncome)).thenReturn(fakeIncome);
 //		Handle object conversion
 		String incomeAsString = objectMapper.writeValueAsString(fakeIncome);
 		JSONObject incomeAsJson = new JSONObject(incomeAsString);
@@ -142,7 +142,7 @@ public class IncomeControllerTest {
 //		Get response as string
 		String responseAsString = response.getResponse().getContentAsString();
 //		Create assertion
-		assertThat(responseAsString).isEqualTo("\"ACCEPTED\"");
+		assertThat(responseAsString).isEqualTo(incomeAsJson.toString());
 	}
 
 }

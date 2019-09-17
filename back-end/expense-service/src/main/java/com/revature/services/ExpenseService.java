@@ -196,8 +196,8 @@ public class ExpenseService {
 		expenseRepository.deleteById(id);
 	}
 
-	public boolean addExpense(Expense expense) {
-		return expenseRepository.save(expense) != null;
+	public Expense addExpense(Expense expense) {
+		return expenseRepository.save(expense);
 	}
 
 	public boolean updateExpense(Expense expense) {

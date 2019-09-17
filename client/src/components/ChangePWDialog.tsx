@@ -114,12 +114,12 @@ export function ChangePw(props: IUpdatePWProps) {
 
   }
   async function updatePw() {
-    const url = 'http://localhost:8080/user/verifyPassword';
+    const url = 'http://localhost:8765/user-service/user/verifyPassword';
     await Axios.post(url, {
       username: props.user.userInfo.username,
       password: state.prev
     }, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
-      const url = 'http://localhost:8080/update'
+      const url = 'http://localhost:8765/user-service/update';
       if (payload.status === 200) {
         Axios.patch(url, {
           id: props.user.userInfo.id,

@@ -11,20 +11,21 @@ import DonutGraph from './data/DonutGraph';
 import { ExpensesTable } from './ExpensesTablesComponent';
 import NewExpense from './NewExpenseDialog';
 import MySnackbarContentWrapper from './SnackBarComponent';
-import { setExpenses, setExpenseTypes, setExpensesTotal, setThisMonthExpenses, setThisMonthExpensesTotal } from '../redux/actions';
+import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
+import { Expense } from '../models/Expense';
+import { setExpenses, setExpenseTypes, setExpensesTotal, setThisMonthExpenses, 
+         setThisMonthExpensesTotal, setThisYearExpensesTotalByMonth }
+         from '../redux/actions/expenses.actions';
 
 export interface IExpenseProps {
   user: IUserState;
   userExpenses:IExpensesState;
-  setExpenses: (expenses:any) => void;
-  setThisMonthExpenses: (thisMonthExpenses:any) => void;
+  setExpenses: (expenses:Expense[]) => void;
+  setThisMonthExpenses: (thisMonthExpenses:Expense[]) => void;
   setExpensesTotal: (expensesTotal:number) => void;
   setThisMonthExpensesTotal: (thisMonthExpensesTotal:number) => void;
+  setThisYearExpensesTotalByMonth: (thisYearExpensesTotalByMonth:MonthExpensesTotal[]) => void;
   ui: IUiState;
-  type: number;
-  date: string;
-  description: string;
-  amount: number;
   history: any;
 }
 
@@ -34,7 +35,6 @@ function Expenses(props: IExpenseProps) {
   const [showTable, setShowTable] = useState(false);
   const [showMonthly, setShowMonthly] = useState(false);
   const [expenseType, setExpenseType] = useState();
-  const [tableExpenses, setTableExpenses] = useState([]);
   const [snackBar, setSnackBar] = useState({
     openDelete: false,
     openUpdate: false,
@@ -48,28 +48,29 @@ function Expenses(props: IExpenseProps) {
       openUpdate: false,
       openCreate: false,
     })
-  }, [props.user.isLoggedIn]);
+  });
 
   useEffect(() => {
-    // Avoid app crash in case user has no expenses in the database
-    try {
-      if (props.userExpenses.expenses.length > 1) {
-        props.setExpensesTotal(props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
-      } else {
-        props.setExpensesTotal(props.userExpenses.expenses[0].amount);
-      }
-    } catch { setHasExpenses(false); }
+    if (props.userExpenses.expenses.length > 1) {
+      props.setExpensesTotal(
+        props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
+    } else if (props.userExpenses.expenses.length === 1) {
+      props.setExpensesTotal(props.userExpenses.expenses[0].amount);
+    } else if (props.userExpenses.expenses.length === 0) {
+      props.setExpensesTotal(0);
+      setHasExpenses(false);
+    }
 
-    try {
-      if (props.userExpenses.thisMonthExpenses.length > 1) {
-        props.setThisMonthExpensesTotal(props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
-      } else {
-        props.setThisMonthExpensesTotal(props.userExpenses.thisMonthExpenses[0].amount);
-      }
-    } catch { }
+    if (props.userExpenses.thisMonthExpenses.length > 1) {
+      props.setThisMonthExpensesTotal(
+        props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
+    } else if (props.userExpenses.expenses.length === 1) {
+      props.setThisMonthExpensesTotal(props.userExpenses.thisMonthExpenses[0].amount);
+    } else if (props.userExpenses.expenses.length === 0) {
+      props.setThisMonthExpensesTotal(0);
+    }
     setIsLoading(false);
   }, [props.userExpenses.expenses, props.userExpenses.thisMonthExpenses]);
-
 
   function handleCloseSnackBar() {
     setSnackBar({
@@ -142,12 +143,9 @@ function Expenses(props: IExpenseProps) {
   //   Request function for new expense here
   async function createNewExpense(newType: any, newDescripion: string, newAmount: number,
     newDate: string) {
-      if (!props.userExpenses.expenses) {
-        setShowTable(false);
-      }
       setIsLoading(true);
       // Prepare request setup
-      const url = 'http://localhost:8080/expense';
+      const url = 'http://localhost:8765/expense-service/expense';
       const data = {
         userId: props.user.userInfo.id,
         expenseType: newType,
@@ -156,7 +154,7 @@ function Expenses(props: IExpenseProps) {
         amount: newAmount
       };
       await Axios.post(url, data)
-        .then((payload) => {
+        .then((payload:any) => {
           setSnackBar({
             ...snackBar,
             openDelete: false,
@@ -167,13 +165,14 @@ function Expenses(props: IExpenseProps) {
           const newDateFormatted = new Date(payload.data.date).toISOString().slice(0, 10);
           payload.data.date = newDateFormatted;
           // Update arrays for properly visualize the new expense added
-          const expensesCopy = props.userExpenses.expenses ?
-                               props.userExpenses.expenses.concat(payload.data) : 
-                               [payload.data];
-          props.setExpenses(expensesCopy);
+          if (props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id == 0) {
+            props.setExpenses([payload.data]);
+          } else {
+            props.setExpenses(props.userExpenses.expenses.concat(payload.data));
+          }
           // Add it to the monthly expenses if the month of the new expense is the current month
           const currentMonth = new Date().getMonth();
-          const thisMonthExpensesCopy = expensesCopy.filter((e:any)=>(
+          const thisMonthExpensesCopy = props.userExpenses.expenses.filter((e:any)=>(
             new Date(e.date).getMonth() == currentMonth
           ));
           props.setThisMonthExpenses(thisMonthExpensesCopy);
@@ -184,7 +183,7 @@ function Expenses(props: IExpenseProps) {
   // Request function to delete an existing expense
   async function deleteExpense(expense: any) {
     setIsLoading(true);
-    const url = `http://localhost:8080/expense/${expense.id}`;
+    const url = `http://localhost:8765/expense-service/expense/${expense.id}`;
     await Axios.delete(url, expense)
       .then(() => {
         setSnackBar({
@@ -195,7 +194,7 @@ function Expenses(props: IExpenseProps) {
         })
         // Remove the expense from the graph by filtering the expenses array
         const tempGraph = props.userExpenses.expenses.filter((e: any) => e.id !== expense.id); 
-        props.setExpenses(tempGraph.length > 0 ? tempGraph : undefined);
+        props.setExpenses(tempGraph.length > 0 ? tempGraph : []);
         // Also update this month expenses
         const currentMonth = new Date().getMonth();
         props.setThisMonthExpenses(tempGraph.filter((e:any)=>(new Date(e.date).getMonth()==currentMonth)));
@@ -213,7 +212,7 @@ function Expenses(props: IExpenseProps) {
     }
     // Update the expenses and monthly expenses state in general (parent component)
     // Send the request
-    const url = `http://localhost:8080/expense`;
+    const url = `http://localhost:8765/expense-service/expense`;
     await Axios.put(url, expense)
       .then(async () => {
         setSnackBar({
@@ -355,10 +354,11 @@ function Expenses(props: IExpenseProps) {
                       :
                       (
                         <Fragment>
-                          {props.userExpenses.expenses &&
+                          {((props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id != 0)
+                            || props.userExpenses.expenses.length > 1) &&
                             <div>
                               <h3>{showMonthly ? "This month" : "Overall"} expenses:
-                        {isLoading ? "..." : showMonthly ? " $" + calculateThisMonthExpensesTotal() : 
+                              {isLoading ? "..." : showMonthly ? " $" + calculateThisMonthExpensesTotal() : 
                               " $" + calculateExpensesTotal()}</h3>
                               <i style={{ color: 'grey', fontSize: '14px' }}>
                                 Click on any section of the graphic to view details.</i>
@@ -403,8 +403,7 @@ function Expenses(props: IExpenseProps) {
                 >
                   <MySnackbarContentWrapper
                     variant="success"
-                    message="Expense Deleted Successfully"
-                  />
+                    message="Expense Deleted Successfully" />
                 </Snackbar>
                 <Snackbar
                   anchorOrigin={{
@@ -452,10 +451,10 @@ const mapStateToProps = (state: IState) => {
 
 const mapDispatchToProps = {
   setExpenses: setExpenses,
-  setExpenseTypes: setExpenseTypes,
   setThisMonthExpenses: setThisMonthExpenses,
   setExpensesTotal: setExpensesTotal,
-  setThisMonthExpensesTotal: setThisMonthExpensesTotal
+  setThisMonthExpensesTotal: setThisMonthExpensesTotal,
+  setThisYearExpensesTotalByMonth: setThisYearExpensesTotalByMonth
 }
 
 export default connect(mapStateToProps,mapDispatchToProps)(Expenses);

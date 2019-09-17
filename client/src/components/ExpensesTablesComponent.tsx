@@ -11,13 +11,6 @@ import { pencilTool, pencilPath, removeTool, removePath, undoTool, undoPath, okT
 import React,{ useState, Fragment } from 'react';
 import colors from '../assets/Colors';
 
-/*
-TODO: 
-- If user clicks on update button, show a dialog that says
-  confirm changes OK - Cancel
-- Try adding monthly checkbox, that will display only expenses for current month
-*/
-
 export function ExpensesTable(props: any) {
   // Declare the boolean that will change the display of the row from read only to write
   const [editableRow, setEditableRow] = useState(false);

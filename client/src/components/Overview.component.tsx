@@ -1,6 +1,5 @@
 import { Button, createStyles, ExpansionPanel, ExpansionPanelDetails, ExpansionPanelSummary, Grid, makeStyles, Paper, Table, TableBody, TableCell, TableHead, TableRow, Theme, Typography, withStyles } from '@material-ui/core';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import Axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -11,7 +10,6 @@ import { IState, IUiState, IUserState, IExpensesState, IBudgetsState, IIncomesSt
 import LineGraph from './data/LineGraph';
 import MixedBarGraph from './data/MixedBarGraph';
 import MixedLineGraph from './data/MixedLineGraph';
-import { setExpenses, setExpenseTypes, setThisMonthExpenses, setExpensesTotal, setThisMonthExpensesTotal } from '../redux/actions';
 import { Budget } from '../models/Budget';
 import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
 import { Income } from '../models/Income';

@@ -9,7 +9,8 @@ import { updateUserInfo } from '../redux/actions/user.actions';
 import ChangePw from './ChangePWDialog';
 import MySnackbarContentWrapper from './SnackBarComponent';
 import { User } from '../models/User';
-import { updateUserLoggedIn, setExpenses, setThisMonthExpenses, setExpensesTotal } from '../redux/actions';
+import { setExpenses, setThisMonthExpenses, setExpensesTotal } from '../redux/actions/expenses.actions';
+import { updateUserLoggedIn } from '../redux/actions/user.actions';
 import { Expense } from '../models/Expense';
 import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
 import { Income } from '../models/Income';
@@ -35,7 +36,7 @@ interface IUserAcct {
   setIncomes: (incomes:Income[]) => void;
 }
 
-export function User(props: IUserAcct) {
+export function Users(props: IUserAcct) {
   const [fnameField, setFnameField] = useState('');
   const [lnameField, setLnameField] = useState('');
   const [username, setUsername] = useState('');
@@ -60,7 +61,6 @@ export function User(props: IUserAcct) {
     setOpen(false);
     handleDelete();
     handleDeselectAll();
-
   }
   function closeUp() {
     setOpenUp(false);
@@ -286,8 +286,6 @@ export function User(props: IUserAcct) {
                 style={{ width: '200px', margin: '10px' }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end" onClick={noEditLname}><Undo /></InputAdornment>,
-
-
                 }}
               />
             </div> :
@@ -301,8 +299,6 @@ export function User(props: IUserAcct) {
                 style={{ width: '200px', margin: '10px' }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end" onClick={editLname}><Edit /></InputAdornment>,
-
-
                 }}
               />
             </div>}
@@ -317,8 +313,6 @@ export function User(props: IUserAcct) {
                 style={{ width: '200px', margin: '10px' }}
                 InputProps={{
                   endAdornment: <InputAdornment position="end" onClick={noEditUn}><Undo /></InputAdornment>,
-
-
                 }}
               /> </div> :
             <div>
@@ -397,28 +391,33 @@ export function User(props: IUserAcct) {
               {toDelete.selectAll ?
                 <FormControlLabel
                   control={
-                    <Checkbox checked={toDelete.selectAll} onChange={handleChange('selectAll')} value="deselectAll" />
+                    <Checkbox checked={toDelete.selectAll} onChange={handleChange('selectAll')} 
+                    value="deselectAll" />
                   }
                   label='Deselect All' /> :
                 <FormControlLabel
                   control={
-                    <Checkbox checked={toDelete.selectAll} onChange={handleChange('selectAll')} value="selectAll" />
+                    <Checkbox checked={toDelete.selectAll} onChange={handleChange('selectAll')} 
+                    value="selectAll" />
                   }
                   label='Select All' />}
 
               <FormControlLabel
                 control={
-                  <Checkbox checked={toDelete.expenses} onChange={handleChange('expenses')} value="expenses" />
+                  <Checkbox checked={toDelete.expenses} onChange={handleChange('expenses')} 
+                  value="expenses" />
                 }
                 label='Expenses' />
               <FormControlLabel
                 control={
-                  <Checkbox checked={toDelete.budget} onChange={handleChange('budget')} value="budget" />
+                  <Checkbox checked={toDelete.budget} onChange={handleChange('budget')} 
+                  value="budget" />
                 }
                 label='Budget' />
               <FormControlLabel
                 control={
-                  <Checkbox checked={toDelete.income} onChange={handleChange('income')} value="income" />
+                  <Checkbox checked={toDelete.income} onChange={handleChange('income')} 
+                  value="income" />
                 }
                 label='Income' />
             </FormGroup>
@@ -493,4 +492,4 @@ const mapDispatchToProps = {
   setIncomes: setIncomes
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(User);
+export default connect(mapStateToProps, mapDispatchToProps)(Users);

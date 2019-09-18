@@ -1,10 +1,8 @@
 import React from 'react';
-import { updateUserLoggedIn, updateUserInfo, setExpenses, setExpenseTypes, setThisMonthExpenses, setExpensesTotal, setThisMonthExpensesTotal } from '../redux/actions';
 import { IUserState, IState, IExpensesState, IBudgetsState, IIncomesState } from '../redux';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
 import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
-import { setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
 import { User } from '../models/User';
 import { Expense } from '../models/Expense';
 import { ExpenseType } from '../models/ExpenseType';
@@ -12,6 +10,9 @@ import { Budget } from '../models/Budget';
 import { BudgetType } from '../models/BudgetType';
 import { Income } from '../models/Income';
 import { IncomeType } from '../models/IncomeType';
+import { updateUserLoggedIn, updateUserInfo } from '../redux/actions/user.actions';
+import { setExpenses, setExpenseTypes, setThisMonthExpenses, setExpensesTotal, 
+  setThisMonthExpensesTotal, setThisYearExpensesTotalByMonth } from '../redux/actions/expenses.actions';
 import { setBudgets, setBudgetTypes } from '../redux/actions/budgets.actions';
 import { setIncomes, setIncomeTypes } from '../redux/actions/incomes.actions';
 

@@ -15,6 +15,7 @@ import { Income } from '../models/Income';
 import { BudgetType } from '../models/BudgetType';
 import { Budget } from '../models/Budget';
 import { User } from '../models/User';
+import { PropagateLoader } from 'react-spinners';
 
 interface ILoginProps {
   // Popover info
@@ -60,7 +61,7 @@ export function Login(props: ILoginProps) {
     let url = `http://localhost:8765/expense-service/expense/user/${userId}`;
     await Axios.get(url)
       .then((payload: any) => {
-        payload.data.length > 0 && props.setExpenses(payload.data);
+        payload.data ? props.setExpenses(payload.data) : props.setExpenses([]);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
@@ -68,7 +69,7 @@ export function Login(props: ILoginProps) {
     url = `http://localhost:8765/expense-service/expense/user/${userId}/monthly`;
     await Axios.get(url)
       .then((payload: any) => {
-        payload.data.length > 0 && props.setThisMonthExpenses(payload.data);
+        payload.data ? props.setThisMonthExpenses(payload.data) : props.setThisMonthExpenses([]);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
@@ -76,7 +77,8 @@ export function Login(props: ILoginProps) {
     url = `http://localhost:8765/expense-service/expense/user/${userId}/yearly`;
     await Axios.get(url)
       .then((payload: any) => {
-        payload.data.length > 0 && props.setThisYearExpensesTotalByMonth(payload.data);
+        payload.data ? props.setThisYearExpensesTotalByMonth(payload.data) 
+        : props.setThisYearExpensesTotalByMonth([]);
       }).catch((err:any) => {
         // Handle error here
       })
@@ -84,7 +86,7 @@ export function Login(props: ILoginProps) {
     url = `http://localhost:8765/expense-service/expense/types`;
     await Axios.get(url)
       .then((payload: any) => {
-        payload.data.length > 0 && props.setExpenseTypes(payload.data);
+        payload.data ? props.setExpenseTypes(payload.data) : props.setExpenseTypes([]);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
@@ -95,7 +97,7 @@ export function Login(props: ILoginProps) {
     let url = `http://localhost:8765/budget-service/budget/user/${userId}`;
     await Axios.get(url)
       .then((payload:any) => {
-        props.setBudgets(payload.data); 
+        payload.data ? props.setBudgets(payload.data) : props.setBudgets([]);
       })
       .catch((err:any) => {
         // Handle error here
@@ -103,7 +105,7 @@ export function Login(props: ILoginProps) {
     url = `http://localhost:8765/budget-service/budget/types`;
     await Axios.get(url)
       .then((payload:any) => {
-        props.setBudgetTypes(payload.data);
+        payload.data ? props.setBudgetTypes(payload.data) : props.setBudgetTypes([]);
       })
       .catch((err:any) => {
         // Handle error here
@@ -132,16 +134,16 @@ export function Login(props: ILoginProps) {
     await Axios.post(url, {
       username: usernameField,
       password: pwField,
-    }).then(payload => {
+    }).then(async (payload:any) =>  {
       setPwError(false);
       setUsernameError(false);
       props.updateUserInfo(payload.data)
       // Call the function to retrieve all user expenses information
-      getUserExpensesInfo(payload.data.id);
+      await getUserExpensesInfo(payload.data.id);
       // Get user budgets information
-      getUserBudgetsInfo(payload.data.id);
+      await getUserBudgetsInfo(payload.data.id);
       // Get user incomes information
-      getUserIncomesInfo(payload.data.id);
+      await getUserIncomesInfo(payload.data.id);
     }).catch(err => {
       setUsernameError(true);
       setUsernameErrorTxt('');

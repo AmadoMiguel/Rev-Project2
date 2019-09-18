@@ -63,10 +63,11 @@ function Expenses(props: IExpenseProps) {
 
     if (props.userExpenses.thisMonthExpenses.length > 1) {
       props.setThisMonthExpensesTotal(
-        props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
-    } else if (props.userExpenses.expenses.length === 1) {
+        props.userExpenses.thisMonthExpenses
+        .map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
+    } else if (props.userExpenses.thisMonthExpenses.length === 1) {
       props.setThisMonthExpensesTotal(props.userExpenses.thisMonthExpenses[0].amount);
-    } else if (props.userExpenses.expenses.length === 0) {
+    } else if (props.userExpenses.thisMonthExpenses.length === 0) {
       props.setThisMonthExpensesTotal(0);
     }
     setIsLoading(false);
@@ -163,18 +164,47 @@ function Expenses(props: IExpenseProps) {
           })
           // Handle date conversion for the new expense
           const newDateFormatted = new Date(payload.data.date).toISOString().slice(0, 10);
+          // Get the year
           payload.data.date = newDateFormatted;
           // Update arrays for properly visualize the new expense added
           if (props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id == 0) {
             props.setExpenses([payload.data]);
           } else {
             props.setExpenses(props.userExpenses.expenses.concat(payload.data));
-            // TODO: ADD THE EXPENSE TO THE MONTH TOTAL IN THE YEARLY EXPENSES ARRAY
-            
+          }
+          // Get current date and a year ago date to see if the expense date fits in that time
+          const currentDate = new Date();
+          const aYearAgoDate = new Date();
+          aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
+          if ((new Date(payload.data.date) < currentDate) && (new Date(payload.data.date) > aYearAgoDate) ) {
+            // Get the month as string
+            let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
+                          "September", "October", "November", "December" ];
+            const monthName = months[new Date(payload.data.date).getMonth()];
+            // If the month was already in the yearly totals, add new amount to it
+            const indexOfTotalExpenses = props.userExpenses.thisYearTotalExpensesByMonth
+            .findIndex((e:MonthExpensesTotal) => e.month === monthName );
+            if (indexOfTotalExpenses === -1) {
+              // Check if the list of monthly totals by year is empty or barely initialized by redux
+              if (props.userExpenses.thisYearTotalExpensesByMonth.length == 1 && 
+                props.userExpenses.thisYearTotalExpensesByMonth[0].month == "") {
+                  props.setThisYearExpensesTotalByMonth([{month:monthName, total:payload.data.amount}]);
+              } else {
+                // Concatenate the new month with the corresponding amount to the total of that month
+                props.setThisYearExpensesTotalByMonth(
+                  props.userExpenses.thisYearTotalExpensesByMonth
+                  .concat({month:monthName,total:payload.data.amount}));
+              }
+            } else {
+              // Add the expense amount to the total for that month
+              let copyOfMonthlyTotals = props.userExpenses.thisYearTotalExpensesByMonth;
+              copyOfMonthlyTotals[indexOfTotalExpenses].total += payload.data.amount;
+              props.setThisYearExpensesTotalByMonth(copyOfMonthlyTotals);
+            }
           }
           // Add it to the monthly expenses if the month of the new expense is the current month
           const currentMonth = new Date().getMonth();
-          const thisMonthExpensesCopy = props.userExpenses.expenses.filter((e:any)=>(
+          const thisMonthExpensesCopy = props.userExpenses.expenses.filter((e:Expense)=>(
             new Date(e.date).getMonth() == currentMonth
           ));
           props.setThisMonthExpenses(thisMonthExpensesCopy);
@@ -197,9 +227,36 @@ function Expenses(props: IExpenseProps) {
         // Remove the expense from the graph by filtering the expenses array
         const tempGraph = props.userExpenses.expenses.filter((e: any) => e.id !== expense.id); 
         props.setExpenses(tempGraph.length > 0 ? tempGraph : []);
+        // Update this year monthly total expenses
+        // Get current date and a year ago date to see if the expense date fits in that time
+        props.setThisYearExpensesTotalByMonth([]);
+        const currentDate = new Date();
+        const aYearAgoDate = new Date();
+        aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
+        // Get expenses with date between previous year and now
+        let expensesPastYear = tempGraph
+        .filter((e:Expense) => e.date > aYearAgoDate && e.date < currentDate );
+        // Define year months
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
+                      "September", "October", "November", "December" ];
+        let totalsPerMonthPastYear:Map<string,number> = new Map();
+        for (let e of expensesPastYear) {
+          if (e.amount > 0) {
+            if (totalsPerMonthPastYear.has(months[e.date.getMonth()])) {
+              let newAmount = totalsPerMonthPastYear.get(months[e.date.getMonth()]) ? + e.amount : 0;
+              totalsPerMonthPastYear.set(months[e.date.getMonth()],newAmount);
+            } else {
+              totalsPerMonthPastYear.set(months[e.date.getMonth()], e.amount);
+            }
+          }
+        }
+        totalsPerMonthPastYear
+        .forEach((t:number,m:string) => (props
+          .setThisYearExpensesTotalByMonth(props.userExpenses.thisYearTotalExpensesByMonth
+            .concat({month:m,total:t}))));
         // Also update this month expenses
         const currentMonth = new Date().getMonth();
-        props.setThisMonthExpenses(tempGraph.filter((e:any)=>(new Date(e.date).getMonth()==currentMonth)));
+        props.setThisMonthExpenses(tempGraph.filter((e:Expense)=>(e.date.getMonth()==currentMonth)));
         setIsLoading(false);
       });
   }
@@ -228,6 +285,33 @@ function Expenses(props: IExpenseProps) {
         const expensesCopy = props.userExpenses.expenses;
         expensesCopy[updatedExpenseIndex] = expense;
         props.setExpenses(expensesCopy);
+        // Update this year monthly total expenses
+        // Get current date and a year ago date to see if the expense date fits in that time
+        props.setThisYearExpensesTotalByMonth([]);
+        const currentDate = new Date();
+        const aYearAgoDate = new Date();
+        aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
+        // Get expenses with date between previous year and now
+        let expensesPastYear = expensesCopy
+        .filter((e:Expense) => e.date > aYearAgoDate && e.date < currentDate );
+        // Define year months
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
+                      "September", "October", "November", "December" ];
+        let totalsPerMonthPastYear:Map<string,number> = new Map();
+        for (let e of expensesPastYear) {
+          if (e.amount > 0) {
+            if (totalsPerMonthPastYear.has(months[e.date.getMonth()])) {
+              let newAmount = totalsPerMonthPastYear.get(months[e.date.getMonth()]) ? + e.amount : 0;
+              totalsPerMonthPastYear.set(months[e.date.getMonth()],newAmount);
+            } else {
+              totalsPerMonthPastYear.set(months[e.date.getMonth()], e.amount);
+            }
+          }
+        }
+        totalsPerMonthPastYear
+        .forEach((t:number,m:string) => (props
+          .setThisYearExpensesTotalByMonth(props.userExpenses.thisYearTotalExpensesByMonth
+            .concat({month:m,total:t}))));
         // Now filter the monthly expenses from the general expenses array according to the month
         // Get current month
         const currentMonth = new Date().getMonth();

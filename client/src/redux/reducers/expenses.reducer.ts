@@ -5,7 +5,7 @@ const initialState:IExpensesState = {
     expenses:[{
         id: 0,
         userId: 0,
-        userInfo: {
+        user: {
             id: 0,
             username:"",
             firstName: "",
@@ -30,7 +30,7 @@ const initialState:IExpensesState = {
     thisMonthExpenses:[{
         id: 0,
         userId: 0,
-        userInfo: {
+        user: {
             id: 0,
             username:"",
             firstName: "",

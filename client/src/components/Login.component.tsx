@@ -115,12 +115,15 @@ export function Login(props: ILoginProps) {
         props.setIncomes(payload.data);
       })
       .catch((err:any) => {
-        // Handle erro here
+        // Handle error here
       });
     url = `http://localhost:8765/income-service/income/types`;
     await Axios.get(url)
       .then((payload:any) => {
         props.setIncomeTypes(payload.data);
+      })
+      .catch((payload:any) => {
+        // Handle error here
       });
   }
 
@@ -129,17 +132,17 @@ export function Login(props: ILoginProps) {
     await Axios.post(url, {
       username: usernameField,
       password: pwField,
-    }).then((payload:any) => {
+    }).then(async (payload:any) => {
       setPwError(false);
       setUsernameError(false);
       // Populate user information
       props.updateUserInfo(payload.data);
       // Request user expenses info
-      getUserExpensesInfo(payload.data.id);
+      await getUserExpensesInfo(payload.data.id);
       // Request user budgets info
-      getUserBudgetsInfo(payload.data.id);
+      await getUserBudgetsInfo(payload.data.id);
       // Request user incomes info
-      getUserIncomesInfo(payload.data.id);
+      await getUserIncomesInfo(payload.data.id);
       props.updateUserLoggedIn(true);
     }).catch(err => {
       setUsernameError(true);

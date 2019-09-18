@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { Row } from 'reactstrap';
 import '../App.css';
 import { IState, IUiState, IUserState } from '../redux';
-import { updateUserInfo, updateUserLoggedIn } from '../redux/actions';
+import { updateUserInfo, updateUserLoggedIn } from '../redux/actions/user.actions';
 import { Redirect } from 'react-router';
 import { User } from '../models/User';
 

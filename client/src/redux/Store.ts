@@ -8,6 +8,7 @@ import { state } from './index';
 import autoMergeLevel2 from 'redux-persist/es/stateReconciler/autoMergeLevel2';
 import storage from 'redux-persist/lib/storage';
 import { persistStore, persistReducer } from 'redux-persist';
+import logger from 'redux-logger';
 const persistConfig = {
     key: 'root',
     storage: storage,
@@ -23,7 +24,7 @@ const composeEnhancers = a.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const enhancer = composeEnhancers(
     // There are much better ways to see redux logs,
     // like browser extensions.
-    // applyMiddleware(reduxThunk, logger),
+    applyMiddleware(reduxThunk, logger),
     applyMiddleware(reduxThunk),
     // other store enhancers if any
 );

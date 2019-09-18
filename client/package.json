@@ -31,7 +31,7 @@
         "react-redux": "^7.1.0",
         "react-responsive": "^7.0.0",
         "react-router-dom": "^5.0.1",
-        "react-scripts": "3.0.1",
+        "react-scripts": "^3.0.1",
         "react-spinners": "^0.5.12",
         "react-virtualized": "^9.21.1",
         "reactstrap": "^8.0.1",
@@ -62,5 +62,5 @@
             "last 1 safari version"
         ]
     },
-    "proxy": "http://localhost:8080/"
+    "proxy": "http://localhost:8765/"
 }

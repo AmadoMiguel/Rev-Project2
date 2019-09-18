@@ -52,7 +52,7 @@ function a11yProps(index: any) {
   };
 }
 
-export function Budget(props: IBudgetProps) {
+export function Budgets(props: IBudgetProps) {
   const [tabIndex, setTabIndex] = React.useState(0);
   const styles = {
     loadingDiv: {
@@ -421,4 +421,4 @@ const mapDispatchToProps = {
   setBudgets: setBudgets
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Budget);
+export default connect(mapStateToProps, mapDispatchToProps)(Budgets);

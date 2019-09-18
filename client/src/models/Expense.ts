@@ -4,7 +4,7 @@ import { ExpenseType } from "./ExpenseType";
 export interface Expense {
     id: number,
     userId: number,
-    userInfo: User,
+    user: User,
     expenseType: ExpenseType,
     date: Date,
     description: string,

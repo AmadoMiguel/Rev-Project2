@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Redirect } from 'react-router-dom';
 import { PersistGate } from 'redux-persist/integration/react';
 import './App.css';
 import colors from './assets/Colors';
-import Budget from './components/Budget.component';
+import Budgets from './components/Budgets.component';
 import Expenses from './components/Expenses.component';
 import Incomes from './components/Incomes.component';
 import Login from './components/Login.component';
@@ -13,7 +13,7 @@ import Logout from './components/Logout.component';
 import NavBar from './components/Navbar.component';
 import Overview from './components/Overview.component';
 import Register from './components/Register.component';
-import User from './components/User.component';
+import Users from './components/Users.component';
 import { persistor, store } from './redux/Store';
 import { getThemeProps } from '@material-ui/styles';
 
@@ -69,9 +69,9 @@ const App: React.FC = () => {
             <Route path="/login" exact component={Login} />
             <Route path="/logout" exact component={Logout} />
             <Route path="/register" exact component={Register} />
-            <Route path="/user" exact component={User} />
+            <Route path="/user" exact component={Users} />
             <Route path="/incomes" exact component={Incomes} />
-            <Route path="/budget" exact component={Budget} />
+            <Route path="/budget" exact component={Budgets} />
             <Route path="/expenses" exact component={Expenses} />
           </Router>
         </MuiThemeProvider>

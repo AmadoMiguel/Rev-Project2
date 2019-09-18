@@ -8,7 +8,7 @@ import { Link, withRouter } from 'react-router-dom';
 import colors from '../assets/Colors';
 import Logo from '../assets/Logo.svg';
 import { IState, IUiState, IUserState } from '../redux';
-import { setMobileView } from '../redux/actions';
+import { setMobileView } from '../redux/actions/ui.actions';
 import Login from './LoginPopover.component';
 import { Sidebar } from './Sidebar.component';
 

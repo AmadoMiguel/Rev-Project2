@@ -60,28 +60,29 @@ export function Login(props: ILoginProps) {
     let url = `http://localhost:8765/expense-service/expense/user/${userId}`;
     await Axios.get(url)
       .then((payload: any) => {
-        props.setExpenses(payload.data);
+        payload.data ? props.setExpenses(payload.data) : props.setExpenses([]);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
     url = `http://localhost:8765/expense-service/expense/user/${userId}/monthly`;
     await Axios.get(url)
       .then((payload: any) => {
-        props.setThisMonthExpenses(payload.data);
+        payload.data ? props.setThisMonthExpenses(payload.data) : props.setThisMonthExpenses([]);
       }).catch((err: any) => {
         // Handle error by displaying something else
       });
     url = `http://localhost:8765/expense-service/expense/user/${userId}/yearly`;
     await Axios.get(url)
       .then((payload: any) => {
-        props.setThisYearExpensesTotalByMonth(payload.data);
+        payload.data ? props.setThisYearExpensesTotalByMonth(payload.data) :
+         props.setThisYearExpensesTotalByMonth([]);
       }).catch((err:any) => {
         // Handle error here
       })
     url = `http://localhost:8765/expense-service/expense/types`;
     await Axios.get(url)
     .then((payload: any) => {
-      props.setExpenseTypes(payload.data);
+      payload.data ? props.setExpenseTypes(payload.data) : props.setExpenseTypes([]);
     }).catch((err: any) => {
       // Handle error by displaying something else
     });

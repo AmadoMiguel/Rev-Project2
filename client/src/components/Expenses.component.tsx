@@ -16,6 +16,7 @@ import { Expense } from '../models/Expense';
 import { setExpenses, setExpenseTypes, setExpensesTotal, setThisMonthExpenses, 
          setThisMonthExpensesTotal, setThisYearExpensesTotalByMonth }
          from '../redux/actions/expenses.actions';
+import { ExpenseType } from '../models/ExpenseType';
 
 export interface IExpenseProps {
   user: IUserState;
@@ -53,9 +54,10 @@ function Expenses(props: IExpenseProps) {
   useEffect(() => {
     if (props.userExpenses.expenses.length > 1) {
       props.setExpensesTotal(
-        props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
+        props.userExpenses.expenses
+        .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
     } else if (props.userExpenses.expenses.length === 1) {
-      props.setExpensesTotal(props.userExpenses.expenses[0].amount);
+      props.setExpensesTotal(Math.round(props.userExpenses.expenses[0].amount));
     } else if (props.userExpenses.expenses.length === 0) {
       props.setExpensesTotal(0);
       setHasExpenses(false);
@@ -64,9 +66,9 @@ function Expenses(props: IExpenseProps) {
     if (props.userExpenses.thisMonthExpenses.length > 1) {
       props.setThisMonthExpensesTotal(
         props.userExpenses.thisMonthExpenses
-        .map((num: any) => num.amount).reduce((a: any, b: any) => a + b));
+        .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
     } else if (props.userExpenses.thisMonthExpenses.length === 1) {
-      props.setThisMonthExpensesTotal(props.userExpenses.thisMonthExpenses[0].amount);
+      props.setThisMonthExpensesTotal(Math.round(props.userExpenses.thisMonthExpenses[0].amount));
     } else if (props.userExpenses.thisMonthExpenses.length === 0) {
       props.setThisMonthExpensesTotal(0);
     }
@@ -84,40 +86,41 @@ function Expenses(props: IExpenseProps) {
 
   // Return all expenses
   function createGraphData() {
-    return props.userExpenses.expenses.map((i: any) => {
-      return { key: i.expenseType.type, data: i.amount }
+    return props.userExpenses.expenses.map((e: Expense) => {
+      return { key: e.expenseType.type, data: e.amount }
     });
   }
   // Return the expenses data for the table
   function generalExpensesTableData() {
-    const type = props.userExpenses.expenseTypes.find((type: any) => type.type == expenseType);
-    return props.userExpenses.expenses.filter((expense: any) =>
+    const type = props.userExpenses.expenseTypes.find((type: ExpenseType) => type.type == expenseType);
+    return props.userExpenses.expenses.filter((expense: Expense) =>
           JSON.stringify(expense.expenseType) == JSON.stringify(type));
   }
   // Return the current month expenses data for the table
   function thisMonthExpensesTableData() {
-    const type = props.userExpenses.expenseTypes.find((type: any) => type.type == expenseType);
-    return props.userExpenses.thisMonthExpenses.filter((expense: any) =>
+    const type = props.userExpenses.expenseTypes.find((type: ExpenseType) => type.type == expenseType);
+    return props.userExpenses.thisMonthExpenses.filter((expense: Expense) =>
           JSON.stringify(expense.expenseType) == JSON.stringify(type));
   }
   // Calculate all expenses total
   function calculateExpensesTotal() {
-    return props.userExpenses.expenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b);
+    return props.userExpenses.expenses.map((e: Expense) => e.amount).reduce((a: any, b: any) => a + b);
   }
   // Calculate all monthly expenses total
   function calculateThisMonthExpensesTotal() {
-    return props.userExpenses.thisMonthExpenses.map((num: any) => num.amount).reduce((a: any, b: any) => a + b);
+    return props.userExpenses.thisMonthExpenses.map((e: Expense) => e.amount)
+    .reduce((a: any, b: any) => a + b);
   }
   // Return monthly expenses
   function createMonthlyGraphData() {
-    return props.userExpenses.thisMonthExpenses.map((i: any) => {
-      return { key: i.expenseType.type, data: i.amount }
+    return props.userExpenses.thisMonthExpenses.map((e: Expense) => {
+      return { key: e.expenseType.type, data: e.amount }
     });
   }
 
   function createGraphLabels() {
-    return props.userExpenses.expenseTypes.map((i: any) => {
-      return i.type;
+    return props.userExpenses.expenseTypes.map((t: ExpenseType) => {
+      return t.type;
     });
   }
 

@@ -61,6 +61,7 @@ export function Login(props: ILoginProps) {
     let url = `http://localhost:8765/expense-service/expense/user/${userId}`;
     await Axios.get(url)
       .then((payload: any) => {
+        console.log(payload);
         payload.data ? props.setExpenses(payload.data) : props.setExpenses([]);
       }).catch((err: any) => {
         // Handle error by displaying something else

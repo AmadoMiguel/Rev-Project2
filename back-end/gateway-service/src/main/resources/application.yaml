@@ -25,6 +25,7 @@ zuul:
       path: /income-service/**
       url: http://localhost:8093/
   sensitive-headers:
+    ignored-headers: Access-Control-Allow-Credentials, Access-Control-Allow-Origin
   
 server:
   port: 8765

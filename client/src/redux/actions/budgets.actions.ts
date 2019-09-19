@@ -2,7 +2,7 @@ import { Budget } from "../../models/Budget";
 import { BudgetType } from "../../models/BudgetType";
 
 export const budgetsActionsTypes = {
-    SET_BUDGETS: "SET_EXPENSES",
+    SET_BUDGETS: "SET_BUDGETS",
     SET_BUDGET_TYPES: "SET_BUDGET_TYPES"
 }
 

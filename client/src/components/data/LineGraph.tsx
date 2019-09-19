@@ -82,7 +82,7 @@ export default function LineGraph(props: any) {
   }, [props.months, props.expenseTotals])
 
   return (
-    (data.length ?
+    (data ?
       <Line data={data}
         width={500}
         height={props.isMobileView ? 500 : 400}

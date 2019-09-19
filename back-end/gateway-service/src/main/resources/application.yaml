@@ -10,7 +10,14 @@ hystrix:
           thread:
             timeoutInMiliseconds: 60000
 
+ribbon:
+  ReadTimeout: 60000
+  ConnectTimeout: 60000
+
 zuul:
+  ribbon:
+    eager-load: 
+      enabled: true
   routes:
     users: 
       path: /user-service/**

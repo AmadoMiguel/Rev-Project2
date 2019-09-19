@@ -169,12 +169,22 @@ function Expenses(props: IExpenseProps) {
           const newDateFormatted = new Date(payload.data.date).toISOString().slice(0, 10);
           // Get the year
           payload.data.date = newDateFormatted;
+          // Copy of the current user expenses
+          let userExpensesCopy = props.userExpenses.expenses;
           // Update arrays for properly visualize the new expense added
-          if (props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id == 0) {
-            props.setExpenses([payload.data]);
+          if (userExpensesCopy.length == 1 && userExpensesCopy[0].id == 0) {
+            userExpensesCopy = [payload.data];
+            props.setExpenses(userExpensesCopy);
           } else {
-            props.setExpenses(props.userExpenses.expenses.concat(payload.data));
+            userExpensesCopy.concat(payload.data);
+            props.setExpenses(userExpensesCopy);
           }
+          // Add it to the monthly expenses if the month of the new expense is the current month
+          const currentMonth = new Date().getMonth();
+          const thisMonthExpensesCopy = userExpensesCopy.filter((e:Expense)=>(
+            new Date(e.date).getMonth() == currentMonth
+          ));
+          props.setThisMonthExpenses(thisMonthExpensesCopy);
           // Get current date and a year ago date to see if the expense date fits in that time
           const currentDate = new Date();
           const aYearAgoDate = new Date();
@@ -205,12 +215,6 @@ function Expenses(props: IExpenseProps) {
               props.setThisYearExpensesTotalByMonth(copyOfMonthlyTotals);
             }
           }
-          // Add it to the monthly expenses if the month of the new expense is the current month
-          const currentMonth = new Date().getMonth();
-          const thisMonthExpensesCopy = props.userExpenses.expenses.filter((e:Expense)=>(
-            new Date(e.date).getMonth() == currentMonth
-          ));
-          props.setThisMonthExpenses(thisMonthExpensesCopy);
         });
       setIsLoading(false);
   }

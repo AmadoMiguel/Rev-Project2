@@ -162,23 +162,21 @@ export function ExpensesTable(props: any) {
                   }
                 </TableCell>
                 {
-                  props.view ? <Fragment></Fragment> :
-                    <Fragment>
-                      <TableCell component="th" scope="row"
-                        size='small'>
-                        <Input
-                          fullWidth={false}
-                          disabled={(editableRow && (editableRowKey === row.id)) ? false : true}
-                          style={{
-                            fontSize: props.view ? '13.3px' : "17px",
-                            color: (editableRow && (editableRowKey === row.id)) ? colors.darkGreen : "black"
-                          }}
-                          type="date"
-                          value={(editableRow && (editableRowKey === row.id)) ? state.date : row.date}
-                          name="date"
-                          onChange={(e: any) => handleEditedExpenseChange(e)} />
-                      </TableCell>
-                    </Fragment>
+                  props.view ? <></> :
+                    <TableCell component="th" scope="row"
+                      size='small'>
+                      <Input
+                        fullWidth={false}
+                        disabled={(editableRow && (editableRowKey === row.id)) ? false : true}
+                        style={{
+                          fontSize: props.view ? '13.3px' : "17px",
+                          color: (editableRow && (editableRowKey === row.id)) ? colors.darkGreen : "black"
+                        }}
+                        type="date"
+                        value={(editableRow && (editableRowKey === row.id)) ? state.date : row.date}
+                        name="date"
+                        onChange={(e: any) => handleEditedExpenseChange(e)} />
+                    </TableCell>
                 }
                 <TableCell component="th" scope="row">
                   {
@@ -192,7 +190,7 @@ export function ExpensesTable(props: any) {
                           fontSize: props.view ? '13.3px' : "17px",
                           color: (editableRow && (editableRowKey === row.id)) ? colors.darkGreen : "black"
                         }}
-                        multiline={true}
+                        // multiline={true}
                         value={(editableRow && (editableRowKey === row.id)) ? state.description : row.description}
                         name="description"
                         onChange={(e: any) => handleEditedExpenseChange(e)} />

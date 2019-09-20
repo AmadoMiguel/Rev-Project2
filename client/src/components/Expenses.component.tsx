@@ -56,9 +56,11 @@ function Expenses(props: IExpenseProps) {
       props.setExpensesTotal(
         props.userExpenses.expenses
         .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
-    } else if (props.userExpenses.expenses.length === 1) {
+    } else if (props.userExpenses.expenses.length === 1 &&
+      props.userExpenses.expenses[0].id !== 0) {
       props.setExpensesTotal(Math.round(props.userExpenses.expenses[0].amount));
-    } else if (props.userExpenses.expenses.length === 0) {
+    } else if (props.userExpenses.expenses.length === 0 ||
+      props.userExpenses.expenses[0].id === 0)  {
       props.setExpensesTotal(0);
       setHasExpenses(false);
     }
@@ -67,7 +69,8 @@ function Expenses(props: IExpenseProps) {
       props.setThisMonthExpensesTotal(
         props.userExpenses.thisMonthExpenses
         .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
-    } else if (props.userExpenses.thisMonthExpenses.length === 1) {
+    } else if (props.userExpenses.thisMonthExpenses.length === 1 && 
+      props.userExpenses.thisMonthExpenses[0].id !== 0) {
       props.setThisMonthExpensesTotal(Math.round(props.userExpenses.thisMonthExpenses[0].amount));
     } else if (props.userExpenses.thisMonthExpenses.length === 0) {
       props.setThisMonthExpensesTotal(0);
@@ -102,15 +105,6 @@ function Expenses(props: IExpenseProps) {
     return props.userExpenses.thisMonthExpenses.filter((expense: Expense) =>
           JSON.stringify(expense.expenseType) == JSON.stringify(type));
   }
-  // Calculate all expenses total
-  function calculateExpensesTotal() {
-    return props.userExpenses.expenses.map((e: Expense) => e.amount).reduce((a: any, b: any) => a + b);
-  }
-  // Calculate all monthly expenses total
-  function calculateThisMonthExpensesTotal() {
-    return props.userExpenses.thisMonthExpenses.map((e: Expense) => e.amount)
-    .reduce((a: any, b: any) => a + b);
-  }
   // Return monthly expenses
   function createMonthlyGraphData() {
     return props.userExpenses.thisMonthExpenses.map((e: Expense) => {
@@ -126,7 +120,7 @@ function Expenses(props: IExpenseProps) {
 
   // Function used to display the expenses in the table.
   function handleElementClick(label: string) {
-    const type = props.userExpenses.expenseTypes.find((type: any) => type.type == label);
+    const type = props.userExpenses.expenseTypes.find((type: ExpenseType) => type.type === label);
     if (type) {
       // Show the table if a piece of the donut is clicked
       setExpenseType(label);
@@ -157,6 +151,7 @@ function Expenses(props: IExpenseProps) {
         description: newDescripion,
         amount: newAmount
       };
+      console.log(data);
       await Axios.post(url, data)
         .then((payload:any) => {
           setSnackBar({
@@ -169,22 +164,19 @@ function Expenses(props: IExpenseProps) {
           const newDateFormatted = new Date(payload.data.date).toISOString().slice(0, 10);
           // Get the year
           payload.data.date = newDateFormatted;
-          // Copy of the current user expenses
-          let userExpensesCopy = props.userExpenses.expenses;
           // Update arrays for properly visualize the new expense added
-          if (userExpensesCopy.length == 1 && userExpensesCopy[0].id == 0) {
-            userExpensesCopy = [payload.data];
-            props.setExpenses(userExpensesCopy);
+          if (props.userExpenses.expenses.length === 1 && 
+            props.userExpenses.expenses[0].id === 0) {
+            props.setExpenses([payload.data]);
           } else {
-            userExpensesCopy.concat(payload.data);
-            props.setExpenses(userExpensesCopy);
+            props.setExpenses(props.userExpenses.expenses.concat(payload.data));
           }
           // Add it to the monthly expenses if the month of the new expense is the current month
           const currentMonth = new Date().getMonth();
-          const thisMonthExpensesCopy = userExpensesCopy.filter((e:Expense)=>(
-            new Date(e.date).getMonth() == currentMonth
-          ));
-          props.setThisMonthExpenses(thisMonthExpensesCopy);
+          if (new Date(payload.data.date).getMonth() == currentMonth) {
+
+            props.setThisMonthExpenses(props.userExpenses.thisMonthExpenses.concat(payload.data));
+          }
           // Get current date and a year ago date to see if the expense date fits in that time
           const currentDate = new Date();
           const aYearAgoDate = new Date();
@@ -215,8 +207,8 @@ function Expenses(props: IExpenseProps) {
               props.setThisYearExpensesTotalByMonth(copyOfMonthlyTotals);
             }
           }
+          setIsLoading(false);
         });
-      setIsLoading(false);
   }
 
   // Request function to delete an existing expense
@@ -234,9 +226,11 @@ function Expenses(props: IExpenseProps) {
         // Remove the expense from the graph by filtering the expenses array
         const tempGraph = props.userExpenses.expenses.filter((e: any) => e.id !== expense.id); 
         props.setExpenses(tempGraph.length > 0 ? tempGraph : []);
+        // Also remove the expense from current month expenses in case is there too
+        props.setThisMonthExpenses(props.userExpenses.thisMonthExpenses
+          .filter((e:Expense) => (e.id !== expense.id)));
         // Update this year monthly total expenses
         // Get current date and a year ago date to see if the expense date fits in that time
-        props.setThisYearExpensesTotalByMonth([]);
         const currentDate = new Date();
         const aYearAgoDate = new Date();
         aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
@@ -246,24 +240,13 @@ function Expenses(props: IExpenseProps) {
         // Define year months
         let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
                       "September", "October", "November", "December" ];
-        let totalsPerMonthPastYear:Map<string,number> = new Map();
-        for (let e of expensesPastYear) {
-          if (e.amount > 0) {
-            if (totalsPerMonthPastYear.has(months[e.date.getMonth()])) {
-              let newAmount = totalsPerMonthPastYear.get(months[e.date.getMonth()]) ? + e.amount : 0;
-              totalsPerMonthPastYear.set(months[e.date.getMonth()],newAmount);
-            } else {
-              totalsPerMonthPastYear.set(months[e.date.getMonth()], e.amount);
-            }
-          }
+        let copyOfMonthlyTotals = props.userExpenses.thisYearTotalExpensesByMonth;
+        const indexOfTotalToSubstract = copyOfMonthlyTotals
+        .findIndex((t:MonthExpensesTotal) => (t.month == months[new Date(expense.date).getMonth()]));
+        if (indexOfTotalToSubstract !== -1) {
+          copyOfMonthlyTotals[indexOfTotalToSubstract].total -= expense.amount;
+          props.setThisYearExpensesTotalByMonth(copyOfMonthlyTotals);
         }
-        totalsPerMonthPastYear
-        .forEach((t:number,m:string) => (props
-          .setThisYearExpensesTotalByMonth(props.userExpenses.thisYearTotalExpensesByMonth
-            .concat({month:m,total:t}))));
-        // Also update this month expenses
-        const currentMonth = new Date().getMonth();
-        props.setThisMonthExpenses(tempGraph.filter((e:Expense)=>(e.date.getMonth()==currentMonth)));
         setIsLoading(false);
       });
   }
@@ -292,6 +275,12 @@ function Expenses(props: IExpenseProps) {
         const expensesCopy = props.userExpenses.expenses;
         expensesCopy[updatedExpenseIndex] = expense;
         props.setExpenses(expensesCopy);
+        // Now filter the monthly expenses from the general expenses array according to the month
+        // Get current month
+        const currentMonth = new Date().getMonth();
+        const thisMonthExpensesCopy = expensesCopy
+        .filter( (e:Expense) => new Date(e.date).getMonth() == currentMonth );
+        props.setThisMonthExpenses(thisMonthExpensesCopy);
         // Update this year monthly total expenses
         // Get current date and a year ago date to see if the expense date fits in that time
         props.setThisYearExpensesTotalByMonth([]);
@@ -304,7 +293,7 @@ function Expenses(props: IExpenseProps) {
         // Define year months
         let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
                       "September", "October", "November", "December" ];
-        let totalsPerMonthPastYear:Map<string,number> = new Map();
+        let totalsPerMonthPastYear:Map<string,number> = new Map<string, number>();
         for (let e of expensesPastYear) {
           if (e.amount > 0) {
             if (totalsPerMonthPastYear.has(months[e.date.getMonth()])) {
@@ -319,11 +308,6 @@ function Expenses(props: IExpenseProps) {
         .forEach((t:number,m:string) => (props
           .setThisYearExpensesTotalByMonth(props.userExpenses.thisYearTotalExpensesByMonth
             .concat({month:m,total:t}))));
-        // Now filter the monthly expenses from the general expenses array according to the month
-        // Get current month
-        const currentMonth = new Date().getMonth();
-        const thisMonthExpensesCopy = expensesCopy.filter( (e:any) => new Date(e.date).getMonth() == currentMonth );
-        props.setThisMonthExpenses(thisMonthExpensesCopy);
         setIsLoading(false);
       });
   }
@@ -355,7 +339,7 @@ function Expenses(props: IExpenseProps) {
         </>)
         :
         (
-          (!isLoading && !props.userExpenses.expenses && !hasExpenses) ?
+          (!isLoading && !hasExpenses) ?
             <>
               <div
                 style={{
@@ -404,6 +388,7 @@ function Expenses(props: IExpenseProps) {
                     {showTable
                       ?
                       (
+                        // Table perspective
                         <Fragment>
                           <Container>
                             <Row>
@@ -449,10 +434,11 @@ function Expenses(props: IExpenseProps) {
                         <Fragment>
                           {((props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id != 0)
                             || props.userExpenses.expenses.length > 1) &&
+                            // Donut graph perspective
                             <div>
                               <h3>{showMonthly ? "This month" : "Overall"} expenses:
-                              {isLoading ? "..." : showMonthly ? " $" + calculateThisMonthExpensesTotal() : 
-                              " $" + calculateExpensesTotal()}</h3>
+                              {isLoading ? "..." : showMonthly ? " $" + props.userExpenses.thisMonthExpensesTotal : 
+                              " $" + props.userExpenses.expensesTotal}</h3>
                               <i style={{ color: 'grey', fontSize: '14px' }}>
                                 Click on any section of the graphic to view details.</i>
                               <DonutGraph
@@ -467,24 +453,24 @@ function Expenses(props: IExpenseProps) {
                                 view={props.ui.isMobileView} />
                               {/* Toggles between view monthly expenses and overall expenses */}
                               <FormControlLabel
-                                control={
+                                control= {
                                   <Checkbox
                                     checked={showMonthly}
                                     onChange={showMonthly ? () => viewMonthlyExpenses(false) :
                                       () => viewMonthlyExpenses(true)}
                                     value="checkedB"
-                                    color="primary"
-                                  />
+                                    color="primary" />
                                 }
-                                style={{ marginLeft: '5px' }}
-                                label="This month"
-                              />
-                            </div>}
+                                style= {{ marginLeft: '5px' }}
+                                label= "This month" />
+                            </div>
+                          }
                         </Fragment>
                       )
                     }
                   </div>
                 }
+                {/* Confirmation snackbar */}
                 <Snackbar
                   anchorOrigin={{
                     vertical: 'bottom',

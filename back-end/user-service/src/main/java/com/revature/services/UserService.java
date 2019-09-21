@@ -41,15 +41,15 @@ public class UserService {
 						JWTService.createJWT(String.valueOf(user.get().getId()), user.get().getUsername(),
 								user.get().getEmail(), 0));
 //				Rest template used to send the token to the expense service
-//				RestTemplate restTemplate = new RestTemplate();
-//				String uri = "http://localhost:8765/expense-service/expense/user/{userId}/token/{token}";
-////				Organize url parameters
-//				Map<String,String> uriParams = new HashMap<String,String>();
-//				uriParams.put("userId", String.valueOf(clientInfo.getId()));
-//				uriParams.put("token", clientInfo.getToken());
-//				UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(uri);
-//				restTemplate.exchange(uriBuilder.buildAndExpand(uriParams).toUri(),
-//									  HttpMethod.PUT, null, String.class);
+				RestTemplate restTemplate = new RestTemplate();
+				String uri = "http://localhost:8765/expense-service/expense/user/{userId}/token/{token}";
+//				Organize url parameters
+				Map<String,String> uriParams = new HashMap<String,String>();
+				uriParams.put("userId", String.valueOf(clientInfo.getId()));
+				uriParams.put("token", clientInfo.getToken());
+				UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(uri);
+				restTemplate.exchange(uriBuilder.buildAndExpand(uriParams).toUri(),
+									  HttpMethod.PUT, null, String.class);
 				return clientInfo;
 			} else
 				return null;

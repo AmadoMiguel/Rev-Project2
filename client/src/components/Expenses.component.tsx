@@ -151,7 +151,6 @@ function Expenses(props: IExpenseProps) {
         description: newDescripion,
         amount: newAmount
       };
-      console.log(data);
       await Axios.post(url, data)
         .then((payload:any) => {
           setSnackBar({
@@ -234,17 +233,22 @@ function Expenses(props: IExpenseProps) {
         const currentDate = new Date();
         const aYearAgoDate = new Date();
         aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
-        // Get expenses with date between previous year and now
-        let expensesPastYear = tempGraph
-        .filter((e:Expense) => e.date > aYearAgoDate && e.date < currentDate );
         // Define year months
         let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
                       "September", "October", "November", "December" ];
         let copyOfMonthlyTotals = props.userExpenses.thisYearTotalExpensesByMonth;
         const indexOfTotalToSubstract = copyOfMonthlyTotals
         .findIndex((t:MonthExpensesTotal) => (t.month == months[new Date(expense.date).getMonth()]));
+        // Find the index of the monthly total that holds the value of the recently deleted expense
         if (indexOfTotalToSubstract !== -1) {
-          copyOfMonthlyTotals[indexOfTotalToSubstract].total -= expense.amount;
+          // Remove the monthly total in case by deleting the expense its corresponding total
+          // reaches 0 or below
+          if (copyOfMonthlyTotals[indexOfTotalToSubstract].total - expense.amount <= 0) {
+            copyOfMonthlyTotals.splice(indexOfTotalToSubstract,1);
+            // Substract the value of the recently deleted expense from its corresponding monthly total
+          } else {
+            copyOfMonthlyTotals[indexOfTotalToSubstract].total -= expense.amount;
+          }
           props.setThisYearExpensesTotalByMonth(copyOfMonthlyTotals);
         }
         setIsLoading(false);
@@ -273,6 +277,84 @@ function Expenses(props: IExpenseProps) {
         // Update general expenses array
         const updatedExpenseIndex = props.userExpenses.expenses.findIndex(checkId);
         const expensesCopy = props.userExpenses.expenses;
+        // Update this year monthly total expenses before updating the expenses
+        // Define year months
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
+                      "September", "October", "November", "December" ];
+        // Compare expense before update and after update and check if the month changed, and also
+        // check the amount change in order to properly update its corresponding value in the
+        // monthly total
+        const monthOfCurrentExpense = new Date(expensesCopy[updatedExpenseIndex].date).getMonth();
+        const monthNameForCurExp = months[monthOfCurrentExpense];
+        const yearOfUpdatedExpense = new Date(expense.date).getFullYear();
+        const monthOfUpdatedExpense = new Date(expense.date).getMonth();
+        const dayOfUpdatedExpense = new Date(expense.date).getDay();
+        const monthNameForUpdExp = months[monthOfUpdatedExpense];
+        const amountOfCurrentExpense = expensesCopy[updatedExpenseIndex].amount;
+        const amountOfUpdatedExpense = expense.amount;
+        // Create a copy of the monthly totals
+        let monthlyTotalsCopy:MonthExpensesTotal[] = props.userExpenses.thisYearTotalExpensesByMonth;
+        // First, check if the month wasn't updated
+        if (monthOfCurrentExpense==monthOfUpdatedExpense ) {
+          const indexOfTotalForMonth:number = monthlyTotalsCopy
+          .findIndex((t:MonthExpensesTotal)=>(t.month == monthNameForCurExp));
+          if (amountOfCurrentExpense > amountOfUpdatedExpense) {
+            const dif:number = amountOfCurrentExpense - amountOfUpdatedExpense;
+            if (monthlyTotalsCopy[indexOfTotalForMonth].total - dif <= 0) {
+              monthlyTotalsCopy.splice(indexOfTotalForMonth,1);
+              // Substract the value of the recently deleted expense from its corresponding monthly total
+            } else {
+              monthlyTotalsCopy[indexOfTotalForMonth].total -= dif;
+            }
+          } else if (amountOfCurrentExpense < amountOfUpdatedExpense) {
+            const dif:number = amountOfUpdatedExpense - amountOfCurrentExpense;
+            monthlyTotalsCopy[indexOfTotalForMonth].total += dif;
+          }
+        } else {
+          // If the month is different, check if the new selected month is already on the
+          // monthly totals array. 
+          const indexOfTotalForMonthCur:number = monthlyTotalsCopy
+          .findIndex((t:MonthExpensesTotal)=>(t.month === monthNameForCurExp)); 
+          const indexOfTotalForMonthUpd:number = monthlyTotalsCopy
+          .findIndex((t:MonthExpensesTotal)=>(t.month === monthNameForUpdExp)); 
+          // Check the month for which the monthly total has to be updated
+          if (indexOfTotalForMonthUpd !== -1 ) {
+            if (indexOfTotalForMonthCur !== -1) {
+              // Substract the value of the recently deleted expense from its corresponding monthly total
+              if (monthlyTotalsCopy[indexOfTotalForMonthCur].total - amountOfCurrentExpense <= 0) {
+                monthlyTotalsCopy.splice(indexOfTotalForMonthCur,1);
+              } else {
+                monthlyTotalsCopy[indexOfTotalForMonthCur].total -= amountOfCurrentExpense;
+              }
+            }
+            // Add the amount of the expense to the monthly total of the corresponding month
+            monthlyTotalsCopy[indexOfTotalForMonthUpd] += expense.amount;
+          } else {
+            if (indexOfTotalForMonthCur !== -1) {
+              // Substract the value of the recently deleted expense from its corresponding monthly total
+              if (monthlyTotalsCopy[indexOfTotalForMonthCur].total - amountOfCurrentExpense <= 0) {
+                monthlyTotalsCopy.splice(indexOfTotalForMonthCur,1);
+              } else {
+                monthlyTotalsCopy[indexOfTotalForMonthCur].total -= amountOfCurrentExpense;
+              }
+            }
+            const currentMonth:number = new Date().getMonth();
+            const currentYear:number = new Date().getFullYear();
+            const currentDay:number = new Date().getDay();
+            // Create a new monthly total for the expense in case the new updated date fits on the
+            // previous year date range
+            if (yearOfUpdatedExpense === currentYear) {
+              if (monthOfUpdatedExpense <= currentMonth && dayOfUpdatedExpense <= currentDay) {
+                monthlyTotalsCopy.push({month:monthNameForUpdExp,total:expense.amount});
+              } 
+            } else if (yearOfUpdatedExpense < currentYear) {
+              if (monthOfUpdatedExpense >= currentMonth) {
+                monthlyTotalsCopy.push({month:monthNameForUpdExp,total:expense.amount});
+              }
+            }
+          }
+        }
+        // Update general expenses
         expensesCopy[updatedExpenseIndex] = expense;
         props.setExpenses(expensesCopy);
         // Now filter the monthly expenses from the general expenses array according to the month
@@ -281,33 +363,8 @@ function Expenses(props: IExpenseProps) {
         const thisMonthExpensesCopy = expensesCopy
         .filter( (e:Expense) => new Date(e.date).getMonth() == currentMonth );
         props.setThisMonthExpenses(thisMonthExpensesCopy);
-        // Update this year monthly total expenses
-        // Get current date and a year ago date to see if the expense date fits in that time
-        props.setThisYearExpensesTotalByMonth([]);
-        const currentDate = new Date();
-        const aYearAgoDate = new Date();
-        aYearAgoDate.setFullYear(currentDate.getFullYear()-1);
-        // Get expenses with date between previous year and now
-        let expensesPastYear = expensesCopy
-        .filter((e:Expense) => e.date > aYearAgoDate && e.date < currentDate );
-        // Define year months
-        let months = ["January", "February", "March", "April", "May", "June", "July", "August", 
-                      "September", "October", "November", "December" ];
-        let totalsPerMonthPastYear:Map<string,number> = new Map<string, number>();
-        for (let e of expensesPastYear) {
-          if (e.amount > 0) {
-            if (totalsPerMonthPastYear.has(months[e.date.getMonth()])) {
-              let newAmount = totalsPerMonthPastYear.get(months[e.date.getMonth()]) ? + e.amount : 0;
-              totalsPerMonthPastYear.set(months[e.date.getMonth()],newAmount);
-            } else {
-              totalsPerMonthPastYear.set(months[e.date.getMonth()], e.amount);
-            }
-          }
-        }
-        totalsPerMonthPastYear
-        .forEach((t:number,m:string) => (props
-          .setThisYearExpensesTotalByMonth(props.userExpenses.thisYearTotalExpensesByMonth
-            .concat({month:m,total:t}))));
+        // Update monthly totals
+        props.setThisYearExpensesTotalByMonth(monthlyTotalsCopy);
         setIsLoading(false);
       });
   }
@@ -316,6 +373,7 @@ function Expenses(props: IExpenseProps) {
     <div style={{ textAlign: 'center' }}>
       {!props.user.isLoggedIn ?
         (<>
+        {/* User is not logged in in expenses component */}
           <div
             style={{
               marginTop: '50px', marginRight: 'auto', marginLeft: 'auto', textAlign: 'center',
@@ -341,6 +399,7 @@ function Expenses(props: IExpenseProps) {
         (
           (!isLoading && !hasExpenses) ?
             <>
+            {/* User is logged in and has no expenses */}
               <div
                 style={{
                   marginTop: '50px', marginRight: 'auto', marginLeft: 'auto', textAlign: 'center',
@@ -432,9 +491,9 @@ function Expenses(props: IExpenseProps) {
                       :
                       (
                         <Fragment>
+                          {/* Donut graph perspective */}
                           {((props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id != 0)
                             || props.userExpenses.expenses.length > 1) &&
-                            // Donut graph perspective
                             <div>
                               <h3>{showMonthly ? "This month" : "Overall"} expenses:
                               {isLoading ? "..." : showMonthly ? " $" + props.userExpenses.thisMonthExpensesTotal : 
@@ -471,6 +530,7 @@ function Expenses(props: IExpenseProps) {
                   </div>
                 }
                 {/* Confirmation snackbar */}
+                {/* Pass the status as prop -> "deleted expense",... */}
                 <Snackbar
                   anchorOrigin={{
                     vertical: 'bottom',

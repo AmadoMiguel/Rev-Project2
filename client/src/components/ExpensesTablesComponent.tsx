@@ -352,11 +352,9 @@ export function ExpensesTable(props: any) {
                         disabled={props.view ? false : true}
                         style={{ color: props.view ? undefined : "black" }}
                         fullWidth={false}
-                        multiline={true}
                         defaultValue={state.description}
                         name="description"
-                        onChange={(e: any) => handleEditedExpenseChange(e)}
-                        rowsMax="3" />
+                        onChange={(e: any) => handleEditedExpenseChange(e)} />
                     </Typography>
                   </CardContent>
                 </Card>

@@ -167,7 +167,6 @@ export function IncomesTable(props: any) {
                           fontSize: props.view ? '13.3px' : "17px",
                           color: (editableRow && (editableRowKey === row.id)) ? colors.darkGreen : "black"
                         }}
-                        multiline={true}
                         value={(editableRow && (editableRowKey === row.id)) ? 
                                 state.description : row.description}
                         name="description"
@@ -309,7 +308,6 @@ export function IncomesTable(props: any) {
                         disabled={props.view ? false : true}
                         style={{ color: props.view ? undefined : "black" }}
                         fullWidth={false}
-                        multiline={true}
                         defaultValue={state.description}
                         name="description"
                         onChange={(e: any) => handleEditedIncomeChange(e)}

@@ -31,11 +31,16 @@ export interface IExpenseProps {
 }
 
 function Expenses(props: IExpenseProps) {
-  const [hasExpenses, setHasExpenses] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showTable, setShowTable] = useState(false);
-  const [showMonthly, setShowMonthly] = useState(false);
-  const [expenseType, setExpenseType] = useState();
+  const [hasExpenses, setHasExpenses] = useState<boolean>(true);
+  const [generalGraphData, setGeneralGraphData] = useState<any[]>();
+  const [thisMonthGraphData, setThisMonthGraphData] = useState<any[]>();
+  const [generalTableExpenses, setGeneralTableExpenses] = useState<Expense[]>();
+  const [thisMonthTableExpenses, setThisMonthTableExpenses] = useState<Expense[]>();
+  const [expensesLabels, setExpenseLabels] = useState<string[]>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showTable, setShowTable] = useState<boolean>(false);
+  const [showMonthly, setShowMonthly] = useState<boolean>(false);
+  const [expenseType, setExpenseType] = useState<string>("");
   const [snackBar, setSnackBar] = useState({
     openDelete: false,
     openUpdate: false,
@@ -51,32 +56,66 @@ function Expenses(props: IExpenseProps) {
     })
   });
 
+  useEffect(()=> {
+    // Labels for the donut graph
+    setExpenseLabels(props.userExpenses.expenseTypes.map((t: ExpenseType) => {
+      return t.type;
+    }));
+  });
+
   useEffect(() => {
+    setIsLoading(true);
     if (props.userExpenses.expenses.length > 1) {
+      // Get total expenses
       props.setExpensesTotal(
         props.userExpenses.expenses
         .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
+      // General graph data (amounts by expense types)
+      setGeneralGraphData(props.userExpenses.expenses.map((e: Expense) => {
+        return { key: e.expenseType.type, data: e.amount }
+      }));  
+      // General table expenses
+      setGeneralTableExpenses(props.userExpenses.expenses.filter((expense: Expense) =>
+      expense.expenseType.type == expenseType));
     } else if (props.userExpenses.expenses.length === 1 &&
       props.userExpenses.expenses[0].id !== 0) {
       props.setExpensesTotal(Math.round(props.userExpenses.expenses[0].amount));
+      setGeneralGraphData(props.userExpenses.expenses.map((e: Expense) => {
+        return { key: e.expenseType.type, data: e.amount }
+      }));  
     } else if (props.userExpenses.expenses.length === 0 ||
       props.userExpenses.expenses[0].id === 0)  {
       props.setExpensesTotal(0);
       setHasExpenses(false);
+      setGeneralGraphData([]);  
     }
 
     if (props.userExpenses.thisMonthExpenses.length > 1) {
       props.setThisMonthExpensesTotal(
         props.userExpenses.thisMonthExpenses
         .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b));
+      // This month graph data (amounts by expense types)
+      setThisMonthGraphData(props.userExpenses.thisMonthExpenses.map((e: Expense) => {
+        return { key: e.expenseType.type, data: e.amount }
+      }));  
+      // This month table expenses
+      setThisMonthTableExpenses(props.userExpenses.thisMonthExpenses.filter((expense: Expense) =>
+      expense.expenseType.type == expenseType));
     } else if (props.userExpenses.thisMonthExpenses.length === 1 && 
       props.userExpenses.thisMonthExpenses[0].id !== 0) {
       props.setThisMonthExpensesTotal(Math.round(props.userExpenses.thisMonthExpenses[0].amount));
+      setThisMonthGraphData(props.userExpenses.thisMonthExpenses.map((e: Expense) => {
+        return { key: e.expenseType.type, data: e.amount }
+      }));  
+      setThisMonthTableExpenses(props.userExpenses.thisMonthExpenses.filter((expense: Expense) =>
+      expense.expenseType.type == expenseType));
     } else if (props.userExpenses.thisMonthExpenses.length === 0) {
       props.setThisMonthExpensesTotal(0);
+      setThisMonthGraphData([]);  
+      setThisMonthTableExpenses([]);
     }
     setIsLoading(false);
-  }, [props.userExpenses.expenses, props.userExpenses.thisMonthExpenses]);
+  }, [props.userExpenses.expenses, props.userExpenses.thisMonthExpenses, expenseType]);
 
   function handleCloseSnackBar() {
     setSnackBar({
@@ -85,37 +124,6 @@ function Expenses(props: IExpenseProps) {
       openUpdate: false,
       openCreate: false
     })
-  }
-
-  // Return all expenses
-  function createGraphData() {
-    return props.userExpenses.expenses.map((e: Expense) => {
-      return { key: e.expenseType.type, data: e.amount }
-    });
-  }
-  // Return the expenses data for the table
-  function generalExpensesTableData() {
-    const type = props.userExpenses.expenseTypes.find((type: ExpenseType) => type.type == expenseType);
-    return props.userExpenses.expenses.filter((expense: Expense) =>
-          JSON.stringify(expense.expenseType) == JSON.stringify(type));
-  }
-  // Return the current month expenses data for the table
-  function thisMonthExpensesTableData() {
-    const type = props.userExpenses.expenseTypes.find((type: ExpenseType) => type.type == expenseType);
-    return props.userExpenses.thisMonthExpenses.filter((expense: Expense) =>
-          JSON.stringify(expense.expenseType) == JSON.stringify(type));
-  }
-  // Return monthly expenses
-  function createMonthlyGraphData() {
-    return props.userExpenses.thisMonthExpenses.map((e: Expense) => {
-      return { key: e.expenseType.type, data: e.amount }
-    });
-  }
-
-  function createGraphLabels() {
-    return props.userExpenses.expenseTypes.map((t: ExpenseType) => {
-      return t.type;
-    });
   }
 
   // Function used to display the expenses in the table.
@@ -139,7 +147,7 @@ function Expenses(props: IExpenseProps) {
   }
 
   //   Request function for new expense here
-  async function createNewExpense(newType: any, newDescripion: string, newAmount: number,
+  async function createNewExpense(newType: ExpenseType, newDescripion: string, newAmount: number,
     newDate: string) {
       setIsLoading(true);
       // Prepare request setup
@@ -292,10 +300,14 @@ function Expenses(props: IExpenseProps) {
         const monthNameForUpdExp = months[monthOfUpdatedExpense];
         const amountOfCurrentExpense = expensesCopy[updatedExpenseIndex].amount;
         const amountOfUpdatedExpense = expense.amount;
+        const currentMonth:number = new Date().getMonth();
+        const currentYear:number = new Date().getFullYear();
+        const currentDay:number = new Date().getDay();
         // Create a copy of the monthly totals
         let monthlyTotalsCopy:MonthExpensesTotal[] = props.userExpenses.thisYearTotalExpensesByMonth;
         // First, check if the month wasn't updated
-        if (monthOfCurrentExpense==monthOfUpdatedExpense ) {
+        if (monthOfCurrentExpense==monthOfUpdatedExpense && (yearOfUpdatedExpense === currentYear
+          || yearOfUpdatedExpense==currentYear-1 && dayOfUpdatedExpense>=currentDay)) {
           const indexOfTotalForMonth:number = monthlyTotalsCopy
           .findIndex((t:MonthExpensesTotal)=>(t.month == monthNameForCurExp));
           if (amountOfCurrentExpense > amountOfUpdatedExpense) {
@@ -338,13 +350,12 @@ function Expenses(props: IExpenseProps) {
                 monthlyTotalsCopy[indexOfTotalForMonthCur].total -= amountOfCurrentExpense;
               }
             }
-            const currentMonth:number = new Date().getMonth();
-            const currentYear:number = new Date().getFullYear();
-            const currentDay:number = new Date().getDay();
             // Create a new monthly total for the expense in case the new updated date fits on the
             // previous year date range
             if (yearOfUpdatedExpense === currentYear) {
-              if (monthOfUpdatedExpense <= currentMonth && dayOfUpdatedExpense <= currentDay) {
+              if (monthOfUpdatedExpense < currentMonth) {
+                monthlyTotalsCopy.push({month:monthNameForUpdExp,total:expense.amount});
+              } else if (monthOfUpdatedExpense == currentMonth && dayOfUpdatedExpense<=currentDay) {
                 monthlyTotalsCopy.push({month:monthNameForUpdExp,total:expense.amount});
               } 
             } else if (yearOfUpdatedExpense < currentYear) {
@@ -359,7 +370,6 @@ function Expenses(props: IExpenseProps) {
         props.setExpenses(expensesCopy);
         // Now filter the monthly expenses from the general expenses array according to the month
         // Get current month
-        const currentMonth = new Date().getMonth();
         const thisMonthExpensesCopy = expensesCopy
         .filter( (e:Expense) => new Date(e.date).getMonth() == currentMonth );
         props.setThisMonthExpenses(thisMonthExpensesCopy);
@@ -479,9 +489,8 @@ function Expenses(props: IExpenseProps) {
                                 <BarLoader width={150} color={'#009688'} loading={isLoading} />
                               </div>
                               :
-                              <ExpensesTable expenses={showMonthly?
-                                             thisMonthExpensesTableData():
-                                             generalExpensesTableData()}
+                              <ExpensesTable expenses={showMonthly? thisMonthTableExpenses:
+                                generalTableExpenses}
                                 view={props.ui.isMobileView}
                                 deleteExpense={deleteExpense}
                                 updateExpense={updateExpense} />
@@ -501,8 +510,8 @@ function Expenses(props: IExpenseProps) {
                               <i style={{ color: 'grey', fontSize: '14px' }}>
                                 Click on any section of the graphic to view details.</i>
                               <DonutGraph
-                                data={showMonthly ? createMonthlyGraphData() : createGraphData()}
-                                labels={createGraphLabels()}
+                                data={showMonthly ? thisMonthGraphData : generalGraphData}
+                                labels={expensesLabels}
                                 important='Emergency'
                                 isMobileView={props.ui.isMobileView}
                                 handleElementClick={handleElementClick} />

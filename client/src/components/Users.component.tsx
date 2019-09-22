@@ -211,7 +211,8 @@ export function Users(props: IUserAcct) {
 
     if (toDelete.budget) {
       const url = `http://localhost:8765/budget-service/user/budget/${props.user.userInfo.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } })
+      .then(payload => {
         // Remove all budgets from redux
         props.setBudgets([]);
         setOpenDelete(true);
@@ -219,7 +220,8 @@ export function Users(props: IUserAcct) {
     }
     if (toDelete.expenses) {
       const url = `http://localhost:8765/expense-service/expense/user/expense/${props.user.userInfo.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } })
+      .then(payload => {
         // Remove all expenses info from redux
         props.setExpenses([]);
         props.setExpensesTotal(0);
@@ -231,7 +233,8 @@ export function Users(props: IUserAcct) {
     }
     if (toDelete.income) {
       const url = `http://localhost:8765/income-service/user/income/${props.user.userInfo.id}`;
-      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } }).then(payload => {
+      await Axios.delete(url, { headers: { Authorization: props.user.userInfo.token } })
+      .then(payload => {
         // Remove all incomes from redux
         props.setIncomes([]);
         setOpenDelete(true);

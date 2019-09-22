@@ -45,7 +45,7 @@ export function IncomesTable(props: any) {
     if (status) {
       setAboutToDelete(false);
       setConfirmDialog(false);
-      props.deleteExpense(state);
+      props.deleteIncome(state);
     } else {
       setAboutToDelete(status);
       setConfirmDialog(status);
@@ -62,7 +62,7 @@ export function IncomesTable(props: any) {
   function confirmEdit(editStatus: boolean) {
     if (editStatus) {
       setEditDialog(false);
-      props.updateExpense(state);
+      props.updateIncome(state);
     } else {
       setEditDialog(false);
     }

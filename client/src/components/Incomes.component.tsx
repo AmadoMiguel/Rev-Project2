@@ -174,9 +174,8 @@ function Expenses(props: IIncomeProps) {
               color: colors.offWhite, width: "60%"
             }}>
             <h2 style={{ marginBottom: '40px' }}>
-              With <strong>Budgy</strong> you can schedule your expenses by
+              With <strong>Budgy</strong> you can organize your incomes by
                   category, specifying amount and description. <br />
-              That way you won´t forget them.
                   <br /><br />To get started,
                 </h2>
             <Button style={{ border: `1px solid ${colors.offWhite}`, color: colors.offWhite }}
@@ -199,7 +198,7 @@ function Expenses(props: IIncomeProps) {
                   color: colors.teal, width: "60%", backgroundColor: colors.unusedGrey
                 }}>
                 <h2 style={{ marginBottom: '40px' }}>
-                  Start setting up your expenses, {props.user.userInfo.firstName}. <br /> <br /> <br />
+                  Start adding your incomes, {props.user.userInfo.firstName}. <br /> <br /> <br />
                   What about a new one? <br />
                   <NewIncome
                     types={props.userIncomes.incomeTypes}

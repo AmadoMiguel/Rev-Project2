@@ -6,7 +6,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import './App.css';
 import colors from './assets/Colors';
 import Budgets from './components/Budgets.component';
-import Expenses from './components/Expenses.component';
+import Expenses from './components/Expenses/Expenses.component';
 import Incomes from './components/Incomes.component';
 import Login from './components/Login.component';
 import Logout from './components/Logout.component';

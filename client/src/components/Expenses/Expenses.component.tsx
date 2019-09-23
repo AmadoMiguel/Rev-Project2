@@ -1,22 +1,21 @@
-import { Button, Checkbox, FormControlLabel, Paper, Snackbar } from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import Axios from 'axios';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { BarLoader } from 'react-spinners';
-import { Col, Container, Row } from 'reactstrap';
-import colors from '../assets/Colors';
-import { IState, IUiState, IUserState, IExpensesState } from '../redux';
-import DonutGraph from './data/DonutGraph';
-import { ExpensesTable } from './ExpensesTablesComponent';
-import NewExpense from './NewExpenseDialog';
-import MySnackbarContentWrapper from './SnackBarComponent';
-import { MonthExpensesTotal } from '../models/MonthExpensesTotal';
-import { Expense } from '../models/Expense';
-import { setExpenses, setExpenseTypes, setExpensesTotal, setThisMonthExpenses, 
+import colors from '../../assets/Colors';
+import { IState, IUiState, IUserState, IExpensesState } from '../../redux';
+import { MonthExpensesTotal } from '../../models/MonthExpensesTotal';
+import { Expense } from '../../models/Expense';
+import { setExpenses, setExpensesTotal, setThisMonthExpenses, 
          setThisMonthExpensesTotal, setThisYearExpensesTotalByMonth }
-         from '../redux/actions/expenses.actions';
-import { ExpenseType } from '../models/ExpenseType';
+         from '../../redux/actions/expenses.actions';
+import { ExpenseType } from '../../models/ExpenseType';
+import ExpUserNoLogin from './ExpUserNotLogIn';
+import NoExpenses from './NoExpenses';
+import TablePerspective from './TablePerspective';
+import DonutPerspective from './DonutPerspective';
+import Confirmation from './Confirmation';
 
 export interface IExpenseProps {
   user: IUserState;
@@ -382,49 +381,19 @@ function Expenses(props: IExpenseProps) {
   return (
     <div style={{ textAlign: 'center' }}>
       {!props.user.isLoggedIn ?
-        (<>
-        {/* User is not logged in in expenses component */}
-          <div
-            style={{
-              marginTop: '50px', marginRight: 'auto', marginLeft: 'auto', textAlign: 'center',
-              color: colors.offWhite, width: "60%"
-            }}>
-            <h2 style={{ marginBottom: '40px' }}>
-              With <strong>Budgy</strong> you can schedule your expenses by
-                  category, specifying amount and description. <br />
-              That way you won´t forget them.
-                  <br /><br />To get started,
-                </h2>
-            <Button style={{ border: `1px solid ${colors.offWhite}`, color: colors.offWhite }}
-              variant='text' component={Link} to='/login'>
-              Login
-                  </Button>
-            <b style={{ marginLeft: '10px', marginRight: '10px' }}>or</b>
-            <Button component={Link} to='/register' style={{ backgroundColor: colors.orange }}>
-              Register
-                </Button>
-          </div>
-        </>)
+        (
+          // Display screen to encourage user to log in or register
+          <ExpUserNoLogin />
+        )
         :
         (
           (!isLoading && !hasExpenses) ?
-            <>
-            {/* User is logged in and has no expenses */}
-              <div
-                style={{
-                  marginTop: '50px', marginRight: 'auto', marginLeft: 'auto', textAlign: 'center',
-                  color: colors.teal, width: "60%", backgroundColor: colors.unusedGrey
-                }}>
-                <h2 style={{ marginBottom: '40px' }}>
-                  Start setting up your expenses, {props.user.userInfo.firstName}. <br /> <br /> <br />
-                  What about a new one? <br />
-                  <NewExpense
-                    types={props.userExpenses.expenseTypes}
-                    createExpense={createNewExpense}
-                    view={props.ui.isMobileView} />
-                </h2>
-              </div>
-            </>
+            //  User is logged in and has no expenses 
+              <NoExpenses 
+              firstName ={props.user.userInfo.firstName}
+              types={props.userExpenses.expenseTypes}
+              createExpense={createNewExpense}
+              view ={props.ui.isMobileView}/>
             :
             <>
               {
@@ -456,131 +425,57 @@ function Expenses(props: IExpenseProps) {
                   <div>
                     {showTable
                       ?
-                      (
-                        // Table perspective
-                        <Fragment>
-                          <Container>
-                            <Row>
-                              <Col>
-                                <Button
-                                  color="secondary"
-                                  onClick={() => setShowTable(false)}
-                                  style={{ display: "inline-block", margin: '5px' }}>
-                                  Back
-                            </Button>
-                                {/* If on table perspective, don't show the type selector */}
-                                <NewExpense
-                                  types={props.userExpenses.expenseTypes}
-                                  createExpense={createNewExpense}
-                                  view={props.ui.isMobileView}
-                                  tableView={showTable}
-                                  type={expenseType} />
-                              </Col>
-                            </Row>
-                          </Container>
-                          {
-                            isLoading
-                              ?
-                              <div
-                                style={{
-                                  margin: props.ui.isMobileView ? '75px' : '150px',
-                                  display: 'inline-block'
-                                }}>
-                                <BarLoader width={150} color={'#009688'} loading={isLoading} />
-                              </div>
-                              :
-                              <ExpensesTable expenses={showMonthly? thisMonthTableExpenses:
-                                generalTableExpenses}
-                                view={props.ui.isMobileView}
-                                deleteExpense={deleteExpense}
-                                updateExpense={updateExpense} />
-                          }
-                        </Fragment>
-                      )
+                        (
+                          // Show expenses information by type in the table
+                          <TablePerspective 
+                          tableView={showTable}
+                          setShowTable={setShowTable}
+                          tabExpenses ={showMonthly ? thisMonthTableExpenses:
+                          generalTableExpenses}
+                          delExpense={deleteExpense}
+                          updExpense={updateExpense}
+                          types={props.userExpenses.expenseTypes}
+                          createExpense={createNewExpense}
+                          view={props.ui.isMobileView}
+                          type={expenseType}
+                          loading={isLoading} />
+                        )
                       :
-                      (
-                        <Fragment>
-                          {/* Donut graph perspective */}
-                          {((props.userExpenses.expenses.length == 1 && props.userExpenses.expenses[0].id != 0)
-                            || props.userExpenses.expenses.length > 1) &&
-                            <div>
-                              <h3>{showMonthly ? "This month" : "Overall"} expenses:
-                              {isLoading ? "..." : showMonthly ? " $" + props.userExpenses.thisMonthExpensesTotal : 
-                              " $" + props.userExpenses.expensesTotal}</h3>
-                              <i style={{ color: 'grey', fontSize: '14px' }}>
-                                Click on any section of the graphic to view details.</i>
-                              <DonutGraph
-                                data={showMonthly ? thisMonthGraphData : generalGraphData}
-                                labels={expensesLabels}
-                                important='Emergency'
-                                isMobileView={props.ui.isMobileView}
-                                handleElementClick={handleElementClick} />
-                              <NewExpense
-                                types={props.userExpenses.expenseTypes}
-                                createExpense={createNewExpense}
-                                view={props.ui.isMobileView} />
-                              {/* Toggles between view monthly expenses and overall expenses */}
-                              <FormControlLabel
-                                control= {
-                                  <Checkbox
-                                    checked={showMonthly}
-                                    onChange={showMonthly ? () => viewMonthlyExpenses(false) :
-                                      () => viewMonthlyExpenses(true)}
-                                    value="checkedB"
-                                    color="primary" />
-                                }
-                                style= {{ marginLeft: '5px' }}
-                                label= "This month" />
-                            </div>
-                          }
-                        </Fragment>
-                      )
+                        (
+                          // Donut graph perspective
+                          <DonutPerspective 
+                          expenses={props.userExpenses.expenses}
+                          expTotal={props.userExpenses.expensesTotal}
+                          expTypes={props.userExpenses.expenseTypes}
+                          monthExpTotal={props.userExpenses.thisMonthExpensesTotal}
+                          loading={isLoading}
+                          showMonthly={showMonthly}
+                          graphData={showMonthly ? thisMonthGraphData : generalGraphData}
+                          labels={expensesLabels}
+                          view={props.ui.isMobileView}
+                          selectedType={handleElementClick}
+                          createExpense={createNewExpense}
+                          viewMonthlyExpenses={viewMonthlyExpenses}
+                          />
+                        )
                     }
                   </div>
                 }
-                {/* Confirmation snackbar */}
-                {/* Pass the status as prop -> "deleted expense",... */}
-                <Snackbar
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  }}
-                  open={snackBar.openDelete}
-                  autoHideDuration={5000}
-                  onClose={handleCloseSnackBar}
-                >
-                  <MySnackbarContentWrapper
-                    variant="success"
-                    message="Expense Deleted Successfully" />
-                </Snackbar>
-                <Snackbar
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  }}
-                  open={snackBar.openUpdate}
-                  autoHideDuration={5000}
-                  onClose={handleCloseSnackBar}
-                >
-                  <MySnackbarContentWrapper
-                    variant="success"
-                    message="Expense Updated Successfully"
-                  />
-                </Snackbar>
-                <Snackbar
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                  }}
-                  open={snackBar.openCreate}
-                  autoHideDuration={5000}
-                  onClose={handleCloseSnackBar}
-                >
-                  <MySnackbarContentWrapper
-                    variant="success"
-                    message="Expense Created Successfully"
-                  />
-                </Snackbar>
+                {/* Confirmation snackbar variants */}
+                <Confirmation 
+                open={snackBar.openDelete}
+                message={"Expense Deleted Succesfully"}
+                close ={handleCloseSnackBar}/>
+                
+                <Confirmation 
+                open={snackBar.openUpdate}
+                message={"Expense Updated Succesfully"}
+                close ={handleCloseSnackBar}/>
+                
+                <Confirmation 
+                open={snackBar.openCreate}
+                message={"Expense Created Succesfully"}
+                close ={handleCloseSnackBar}/>
               </Paper>
             </>
         )}

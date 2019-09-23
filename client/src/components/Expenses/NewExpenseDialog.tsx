@@ -82,21 +82,12 @@ export default function NewExpense(props: any) {
 
   return (
     <Fragment>
-      {/* <Button
-        onClick={handleClickOpen}
-        style={{ display: "inline-block" }}
-        color='primary'> */}
       <Button 
       color="secondary" 
       style={{ display: 'inline-block',margin:"5px" }} 
       onClick={handleClickOpen} aria-label="add">
         <AddIcon />
       </Button>
-      {/* <svg xmlns={addTool}
-          width="24" height="24" viewBox="0 0 24 24">
-          <path d={addPath} />
-        </svg>
-      </Button> */}
       <Dialog disableBackdropClick disableEscapeKeyDown open={state.open} onClose={handleClose}>
         <DialogContent>
           <form className={classes.container}>
@@ -122,10 +113,7 @@ export default function NewExpense(props: any) {
                         state.formFilled ?
                           props.view ? "Amount" : "Expense Amount"
                           :
-                          state.amount ?
-                            "Amount"
-                            :
-                            "Required"
+                          state.amount ? "Amount" : "Required"
                       }
                       error={state.formFilled ?
                         false
@@ -168,10 +156,7 @@ export default function NewExpense(props: any) {
                         state.formFilled ?
                           "Description"
                           :
-                          state.description ?
-                            "Description"
-                            :
-                            "Required"
+                          state.description ? "Description" : "Required"
                       }
                       type="text"
                       multiline={true}

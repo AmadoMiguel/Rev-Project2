@@ -7,9 +7,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { pencilTool, pencilPath, removeTool, removePath, undoTool, undoPath, okTool, okPath } from '../assets/Icons';
+import { pencilTool, pencilPath, removeTool, removePath, undoTool, undoPath, okTool, okPath } from '../../assets/Icons';
 import React,{ useState, Fragment } from 'react';
-import colors from '../assets/Colors';
+import colors from '../../assets/Colors';
 
 export function ExpensesTable(props: any) {
   // Declare the boolean that will change the display of the row from read only to write
@@ -190,7 +190,6 @@ export function ExpensesTable(props: any) {
                           fontSize: props.view ? '13.3px' : "17px",
                           color: (editableRow && (editableRowKey === row.id)) ? colors.darkGreen : "black"
                         }}
-                        // multiline={true}
                         value={(editableRow && (editableRowKey === row.id)) ? state.description : row.description}
                         name="description"
                         onChange={(e: any) => handleEditedExpenseChange(e)} />
@@ -258,6 +257,7 @@ export function ExpensesTable(props: any) {
             it. User can select between cancel or delete. */}
         {
           aboutToDelete &&
+          // Delete expense confirmation dialog
           <Paper style={{ textAlign: "center" }}>
             <Dialog open={confirmDialog}>
               <DialogContent>
@@ -308,6 +308,7 @@ export function ExpensesTable(props: any) {
         {/* Display the update confirm dialog. */}
         {
           editDialog &&
+          // Update expense confirmation dialog
           <Paper style={{ textAlign: "center" }}>
             <Dialog open={editDialog}>
               <DialogContent>

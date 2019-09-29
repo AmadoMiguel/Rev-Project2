@@ -109,6 +109,7 @@ export default function NewExpense(props: any) {
                       name="amount"
                       className="new-expense-form"
                       placeholder="0.00"
+                      value = {state.amount}
                       label={
                         state.formFilled ?
                           props.view ? "Amount" : "Expense Amount"
@@ -144,6 +145,7 @@ export default function NewExpense(props: any) {
                   <Row className="new-expense-form">
                     <TextField
                       name="description"
+                      value = {state.description}
                       className="new-expense-form"
                       placeholder="A brief description of the expense..."
                       error={state.formFilled ?

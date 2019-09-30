@@ -6,8 +6,8 @@ function Confirmation(props:any) {
     return (
         <Snackbar
             anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
+                vertical: 'bottom',
+                horizontal: 'left',
             }}
             open={props.open}
             autoHideDuration={5000}

@@ -27,17 +27,6 @@ export function ExpensesTable(props: any) {
   // Define the appereance of the confirmation dialog
   const [confirmDialog, setConfirmDialog] = useState(false);
 
-  // Button used to enable edit fields in the table
-  function handleEditButton(expense: any) {
-    // Define the expense that's going to be edited
-    setState(expense);
-    // This will change the view of the row from read to write mode
-    if (props.view) {
-      setEditDialog(true);
-    } else {
-      setEditableRow(true);
-    }
-  }
   // Function used to close the confirm deletion dialog in case user decides not
   // to delete the expense
   function deleteStatus(status: boolean) {
@@ -51,10 +40,10 @@ export function ExpensesTable(props: any) {
     }
   }
   // Function that listens for changes on any of the expenses
-  const handleEditedExpenseChange = (event: any) => {
+  const handleEditedExpenseChange = (e:any) => {
     setState({
       ...state,
-      [event.target.name]: event.target.value
+      [e.target.name]: e.target.value
     });
   };
   // This function is called only in mobile view
@@ -158,7 +147,7 @@ export function ExpensesTable(props: any) {
                         type="number"
                         value={(editableRow && (editableRowKey === row.id)) ? state.amount : row.amount}
                         name="amount"
-                        onChange={(e: any) => handleEditedExpenseChange(e)} />
+                        onChange={(e:any) => handleEditedExpenseChange(e)} />
                   }
                 </TableCell>
                 {
@@ -175,7 +164,7 @@ export function ExpensesTable(props: any) {
                         type="date"
                         value={(editableRow && (editableRowKey === row.id)) ? state.date : row.date}
                         name="date"
-                        onChange={(e: any) => handleEditedExpenseChange(e)} />
+                        onChange={(e:any) => handleEditedExpenseChange(e)} />
                     </TableCell>
                 }
                 <TableCell component="th" scope="row">
@@ -192,7 +181,7 @@ export function ExpensesTable(props: any) {
                         }}
                         value={(editableRow && (editableRowKey === row.id)) ? state.description : row.description}
                         name="description"
-                        onChange={(e: any) => handleEditedExpenseChange(e)} />
+                        onChange={(e:any) => handleEditedExpenseChange(e)} />
                   }
                 </TableCell>
                 {
@@ -202,13 +191,14 @@ export function ExpensesTable(props: any) {
                     // If row is in edit mode
                     <Fragment>
                       <TableCell>
-                        <Button onClick={() => { setEditDialog(true); }}>
+                        <Button 
+                        id = {`ok-update-${row.id}`}
+                        onClick={() => { setEditDialog(true); }}>
                           <svg fill={colors.offWhite} xmlns={okTool} width="24" height="24" viewBox="0 0 24 24">
                             <path d={okPath} />
                           </svg>
                         </Button>
-                        {/* Assign the onClick function to notify the parent which expense
-                        will be deleted */}
+                        {/* Assign the onClick function to rollback changes */}
                         <Button onClick={() => {
                           setEditableRow(false);
                           setEditableRowKey(0);
@@ -224,7 +214,12 @@ export function ExpensesTable(props: any) {
                     :
                     <Fragment>
                       <TableCell>
-                        <Button onClick={() => { handleEditButton(row); setEditableRowKey(row.id); }}>
+                        <Button 
+                        id = {`update-expense-button-${row.id}`}
+                        onClick={() => { 
+                          props.view ? setEditDialog(true) : setEditableRow(true);
+                          setState(row);
+                          setEditableRowKey(row.id); }}>
                           <svg xmlns={pencilTool} fill={colors.offWhite}
                             width="24" height="24" viewBox="0 0 24 24">
                             <path d={pencilPath} />
@@ -233,6 +228,7 @@ export function ExpensesTable(props: any) {
                         {/* Assign the onClick function to notify the parent which
                         expense will be deleted */}
                         <Button
+                          id = {`delete-expense-button-${row.id}`}
                           style={{ backgroundColor: colors.red }}
                           onClick={() => {
                             setConfirmDialog(true);

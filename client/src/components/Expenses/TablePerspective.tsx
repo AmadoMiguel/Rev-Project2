@@ -16,7 +16,7 @@ function TablePerspective(props:any) {
                     onClick={() => props.setShowTable(false)}
                     style={{ display: "inline-block", margin: '5px' }}>
                     Back
-            </Button>
+                </Button>
                 {/* If on table perspective, don't show the type selector */}
                 <NewExpense
                     types={props.types}

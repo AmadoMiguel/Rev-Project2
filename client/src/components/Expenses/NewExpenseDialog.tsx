@@ -29,7 +29,7 @@ export default function NewExpense(props: any) {
   const classes = useStyles(props);
   const [state, setState] = React.useState({
     open: false,
-    type: 0,
+    type: props.tableView ? props.type : 0,
     description: '',
     amount: 0,
     date: new Date().toISOString().slice(0, 10),
@@ -47,17 +47,11 @@ export default function NewExpense(props: any) {
 
   function handleClickOpen() {
     setState({
-      type: 0,
+      type: props.tableView ? props.type : 0,
       date: new Date().toISOString().slice(0, 10),
       description: '', amount: 0, open: true, formFilled: true
     });
   }
-
-  useEffect(() => {
-    if (props.tableView) {
-      setState({ ...state, type: props.type });
-    }
-  });
 
   function handleSubmit() {
     // Check if form is filled properly

@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Testing <Expenses /> initial rendering the expenses component should be rendered with the redux config 1`] = `
+<div
+  style={
+    Object {
+      "textAlign": "center",
+    }
+  }
+>
+  <h2
+    style={
+      Object {
+        "color": "#FFFFFF",
+      }
+    }
+  >
+    Your expenses
+  </h2>
+  <div
+    className="MuiPaper-root MuiPaper-elevation1 MuiPaper-rounded"
+    style={
+      Object {
+        "backgroundColor": "rgba(220,245,230,0.9)",
+        "height": "60%",
+        "margin": "5px auto",
+        "padding": "10px",
+        "width": "50%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "display": "inline-block",
+          "margin": "150px",
+        }
+      }
+    >
+      <div
+        className="css-14q3vga-wrapper-Loader"
+      >
+        <div
+          className="css-x54n5o-style"
+        />
+        <div
+          className="css-19d6xdh-style"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

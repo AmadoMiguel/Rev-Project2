@@ -47,22 +47,6 @@ function Expenses(props: IExpenseProps) {
   });
 
   useEffect(() => {
-    setSnackBar({
-      ...snackBar,
-      openDelete: false,
-      openUpdate: false,
-      openCreate: false,
-    })
-  });
-
-  useEffect(()=> {
-    // Labels for the donut graph
-    setExpenseLabels(props.userExpenses.expenseTypes.map((t: ExpenseType) => {
-      return t.type;
-    }));
-  });
-
-  useEffect(() => {
     setIsLoading(true);
     if (props.userExpenses.expenses.length > 1) {
       // Get total expenses
@@ -115,6 +99,22 @@ function Expenses(props: IExpenseProps) {
     }
     setIsLoading(false);
   }, [props.userExpenses.expenses, props.userExpenses.thisMonthExpenses, expenseType]);
+
+  useEffect(() => {
+    setSnackBar({
+      ...snackBar,
+      openDelete: false,
+      openUpdate: false,
+      openCreate: false,
+    })
+  });
+
+  useEffect(()=> {
+    // Labels for the donut graph
+    setExpenseLabels(props.userExpenses.expenseTypes.map((t: ExpenseType) => {
+      return t.type;
+    }));
+  });
 
   function handleCloseSnackBar() {
     setSnackBar({

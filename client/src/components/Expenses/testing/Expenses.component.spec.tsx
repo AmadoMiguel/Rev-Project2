@@ -126,6 +126,11 @@ describe("Testing <Expenses />", () => {
     describe("initial rendering", () => {
         it("bar loader component should render first on expenses component", () => {
             // Mock the expenses component
+            let setIsLoading:(state:boolean) => void;
+            const useEffectSpy = jest.spyOn(React, "useEffect");
+            useEffectSpy.mockImplementationOnce(() => {
+                setIsLoading(false);
+            });
             const store = createStore(props);
             const expensesComponentRenderMock = renderer.create(
                 <Provider store = {store}>
@@ -133,13 +138,12 @@ describe("Testing <Expenses />", () => {
                 </Provider>
             );
             const barLoaderMock = expensesComponentRenderMock.root
-            .findByType("div").findByType(Paper).findByType("div").findByType(BarLoader);
+            .findByType("div").findByType(Paper).findByType("div").findByType(DonutPerspective);
             expect(barLoaderMock).toBeDefined();
         });
     });
-    // describe("when creating a new expense...", () => {
-    //     it("Axios post method should be called", () => {
-            
-    //     });
+    // describe("redux actions for expenses total should be called properly", () => {
+        
+
     // });
 });

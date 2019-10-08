@@ -1,6 +1,6 @@
 import React from 'react';
 import Adapter from 'enzyme-adapter-react-16';
-import { configure, mount, shallow, ReactWrapper } from 'enzyme';
+import { configure, mount, shallow, ReactWrapper, ShallowWrapper } from 'enzyme';
 import axios from 'axios';
 import ExpensesComponent, { IExpenseProps, Expenses } from '../Expenses.component';
 import { User } from '../../../models/User';
@@ -149,18 +149,17 @@ describe("Testing <Expenses />", () => {
     });
     describe("redux actions for expenses component should be called properly", () => {
         let store: any;
-        let expensesComponentMock: ReactTestRenderer;
+        let expensesCompMock:ShallowWrapper<IExpenseProps,any>;
+        let useEffect:any;
+        const mockUseEffect = () => {
+            useEffect.mockImplementationOnce((f:any) => f());
+        }
         beforeEach(() => {
+            useEffect = jest.spyOn(React, "useEffect");
+            mockUseEffect();
+            mockUseEffect();
             // Recall initial state from the expenses reducer in order to test actions
             store = createStore(props);
-            expensesComponentMock = renderer.create(
-                <Provider store = {store}>
-                    <ExpensesComponent {...props} />
-                </Provider>
-            );
-        });
-        afterEach(() => {
-            expensesComponentMock.unmount();
         });
         // Testing actions only in redux layer
         it("expenses totals actions should send the correct payload when dispatched", () => {
@@ -184,9 +183,8 @@ describe("Testing <Expenses />", () => {
             ));
             expect(store.getActions()).toEqual(expectedActions);
         });
-        it("testing redux with shallow", () => {
-            const expensesCompMock = shallow(<Expenses {...props} />);
+        it("expenses total should be calculated when pre-rendering component", (done) => {    
             
-        })
+        });
     });
 });

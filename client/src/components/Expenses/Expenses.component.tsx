@@ -422,7 +422,7 @@ export function Expenses(props: IExpenseProps) {
                     </div>
                   )
                   :
-                  <div>
+                  <div data-testid = "graphs-container">
                     {showTable
                       ?
                         (

@@ -2,17 +2,19 @@ import React from 'react';
 import Adapter from 'enzyme-adapter-react-16';
 import { configure, mount, shallow, ReactWrapper } from 'enzyme';
 import axios from 'axios';
-import ExpensesComponent, { IExpenseProps } from '../Expenses.component';
+import ExpensesComponent, { IExpenseProps, Expenses } from '../Expenses.component';
 import { User } from '../../../models/User';
 import { Expense } from '../../../models/Expense';
 import DonutPerspective from '../DonutPerspective';
 import { Paper } from '@material-ui/core';
-import configureStore from 'redux-mock-store';
+import configureStore, { MockStoreCreator } from 'redux-mock-store';
 import renderer, { ReactTestRenderer } from 'react-test-renderer';
 import { Provider } from 'react-redux';
 import promiseMiddleware from 'redux-promise-middleware';
 import reduxThunk from 'redux-thunk';
 import { BarLoader } from 'react-spinners';
+import * as expensesReduxConfig from './../../../redux/reducers/expenses.reducer';
+import * as expensesActions from './../../../redux/actions/expenses.actions';
 
 // Mock all required properties (redux) and axios calls
 // Mock the redux store with required middleware
@@ -124,26 +126,67 @@ const newFakeExpense:Expense = {
 configure({adapter: new Adapter()});
 describe("Testing <Expenses />", () => {
     describe("initial rendering", () => {
-        it("bar loader component should render first on expenses component", () => {
+        let store:any;
+        let expensesComponentRenderMock:ReactTestRenderer;
+        beforeEach(() => {
+            // Create the redux store mock
+            store = createStore(props);
             // Mock the expenses component
-            let setIsLoading:(state:boolean) => void;
-            const useEffectSpy = jest.spyOn(React, "useEffect");
-            useEffectSpy.mockImplementationOnce(() => {
-                setIsLoading(false);
-            });
-            const store = createStore(props);
-            const expensesComponentRenderMock = renderer.create(
+            expensesComponentRenderMock = renderer.create(
                 <Provider store = {store}>
                     <ExpensesComponent {...props}/>
                 </Provider>
             );
+        });
+        afterEach(() => {
+            expensesComponentRenderMock.unmount();
+        });
+        it("bar loader component should render first on expenses component", () => {
             const barLoaderMock = expensesComponentRenderMock.root
-            .findByType("div").findByType(Paper).findByType("div").findByType(DonutPerspective);
+            .findByType("div").findByType(Paper).findByType("div").findByType(BarLoader);
             expect(barLoaderMock).toBeDefined();
         });
     });
-    // describe("redux actions for expenses total should be called properly", () => {
-        
-
-    // });
+    describe("redux actions for expenses component should be called properly", () => {
+        let store: any;
+        let expensesComponentMock: ReactTestRenderer;
+        beforeEach(() => {
+            // Recall initial state from the expenses reducer in order to test actions
+            store = createStore(props);
+            expensesComponentMock = renderer.create(
+                <Provider store = {store}>
+                    <ExpensesComponent {...props} />
+                </Provider>
+            );
+        });
+        afterEach(() => {
+            expensesComponentMock.unmount();
+        });
+        // Testing actions only in redux layer
+        it("expenses totals actions should send the correct payload when dispatched", () => {
+            const expectedActions = [
+                {
+                    type:expensesActions.expensesActionTypes.SET_EXPENSES_TOTAL,
+                    expensesTotal: props.userExpenses.expensesTotal
+                },
+                {
+                    type:expensesActions.expensesActionTypes.SET_THIS_MONTH_EXPENSES_TOTAL,
+                    thisMonthExpensesTotal: props.userExpenses.thisMonthExpensesTotal
+                }
+            ]
+            store.dispatch(expensesActions.setExpensesTotal(
+                props.userExpenses.expenses
+                .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b)
+            ));
+            store.dispatch(expensesActions.setThisMonthExpensesTotal(
+                props.userExpenses.thisMonthExpenses
+                .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b)
+            ));
+            expect(store.getActions()).toEqual(expectedActions);
+        });
+        it("testing redux with shallow", () => {
+            const expensesCompMock = shallow(<Expenses {...props} />);
+            
+        })
+    });
 });

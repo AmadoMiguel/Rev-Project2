@@ -29,7 +29,7 @@ export interface IExpenseProps {
   history: any;
 }
 
-function Expenses(props: IExpenseProps) {
+export function Expenses(props: IExpenseProps) {
   const [hasExpenses, setHasExpenses] = useState<boolean>(true);
   const [generalGraphData, setGeneralGraphData] = useState<any[]>();
   const [thisMonthGraphData, setThisMonthGraphData] = useState<any[]>();

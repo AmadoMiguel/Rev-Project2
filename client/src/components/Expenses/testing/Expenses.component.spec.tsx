@@ -2,6 +2,7 @@ import React from 'react';
 import Adapter from 'enzyme-adapter-react-16';
 import { configure, mount, shallow, ReactWrapper, ShallowWrapper } from 'enzyme';
 import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import ExpensesComponent, { IExpenseProps, Expenses } from '../Expenses.component';
 import { User } from '../../../models/User';
 import { Expense } from '../../../models/Expense';
@@ -16,6 +17,9 @@ import { BarLoader } from 'react-spinners';
 import * as expensesReduxConfig from './../../../redux/reducers/expenses.reducer';
 import * as expensesActions from './../../../redux/actions/expenses.actions';
 import { render } from '@testing-library/react';
+import TablePerspective from '../TablePerspective';
+import NewExpense from './../NewExpenseDialog';
+import { TextField } from '@material-ui/core';
 
 // Mock all required properties (redux) and axios calls
 // Mock the redux store with required middleware
@@ -110,25 +114,25 @@ const props =  {
     setThisYearExpensesTotalByMonth: jest.fn().mockImplementation()
 }
 // Create a new fake expense in order to mock the axios post (create) method
-const newFakeExpense:Expense = {
-    id: 3,
+const newFakeExpense:any = {
     userId: props.user.userInfo.id,
-    user: props.user.userInfo,
     expenseType: {
         id: 4,
         type: "Entertainment"
     },
-    date: new Date(),
+    date: "10-10-2019",
     description: "Testing",
     amount: 100
 }
-
+// Mock axios module
+const mockAdapter = new MockAdapter(axios);
 
 configure({adapter: new Adapter()});
 describe("Testing <Expenses />", () => {
     describe("initial rendering", () => {
         let store:any;
         let expensesComponentRenderMock:ReactTestRenderer;
+        let expensesCompMock: ReactWrapper<IExpenseProps, any>
         beforeEach(() => {
             // Create the redux store mock
             store = createStore(props);
@@ -138,49 +142,62 @@ describe("Testing <Expenses />", () => {
                     <ExpensesComponent {...props}/>
                 </Provider>
             );
+            expensesCompMock = mount(<Expenses {...props} />);
         });
         afterEach(() => {
             expensesComponentRenderMock.unmount();
+            expensesCompMock.unmount();
         });
         it("bar loader component should render first on expenses component", () => {
             const barLoaderMock = expensesComponentRenderMock.root
             .findByType("div").findByType(Paper).findByType("div").findByType(BarLoader);
             expect(barLoaderMock).toBeDefined();
         });
+        it("donut should render properly, table should be hidden", () => {    
+            const donutPerspMock = expensesCompMock.findWhere(
+                node => node.is(DonutPerspective)
+            );
+            expect(donutPerspMock.exists()).toBeTruthy();
+            const tablePerspMock = expensesCompMock.findWhere(
+                node => node.is(TablePerspective)
+            );
+            expect(tablePerspMock.exists()).toBeFalsy();
+        });
     });
-    describe("redux actions for expenses component should be called properly", () => {
+    describe("methods for expenses component should be called properly", () => {
         let store: any;
-        let expensesCompMock:ShallowWrapper<IExpenseProps,any>;
+        let expensesCompMock: ReactWrapper<IExpenseProps, any>;
         beforeEach(() => {
-            // Recall initial state from the expenses reducer in order to test actions
             store = createStore(props);
+            expensesCompMock = mount(<Provider store = {store}>
+                                        <Expenses {...props}/>
+                                    </Provider>);
+            mockAdapter.onPost('http://localhost:8765/expense-service/expense',newFakeExpense)
+            .reply(200, {...newFakeExpense, id: 3, user: userInfo});
         });
-        // Testing actions only in redux layer
-        it("expenses totals actions should send the correct payload when dispatched", () => {
-            const expectedActions = [
-                {
-                    type:expensesActions.expensesActionTypes.SET_EXPENSES_TOTAL,
-                    expensesTotal: props.userExpenses.expensesTotal
-                },
-                {
-                    type:expensesActions.expensesActionTypes.SET_THIS_MONTH_EXPENSES_TOTAL,
-                    thisMonthExpensesTotal: props.userExpenses.thisMonthExpensesTotal
-                }
-            ]
-            store.dispatch(expensesActions.setExpensesTotal(
-                props.userExpenses.expenses
-                .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b)
-            ));
-            store.dispatch(expensesActions.setThisMonthExpensesTotal(
-                props.userExpenses.thisMonthExpenses
-                .map((e: Expense) => Math.round(e.amount)).reduce((a: any, b: any) => a + b)
-            ));
-            expect(store.getActions()).toEqual(expectedActions);
+        afterEach(() => {
+            expensesCompMock.unmount();
+        })
+        it("set expenses totals should be calculated when pre-rendering component", () => {
+            expect(props.setExpensesTotal).toHaveBeenCalledWith(props.userExpenses.expensesTotal);
+            expect(props.setThisMonthExpensesTotal)
+            .toHaveBeenCalledWith(props.userExpenses.thisMonthExpensesTotal);
         });
-        it("donut perspective should render properly", (done) => {    
-            const {getByTestId} = render(<Expenses {...props} />);
-            const graphContainer = getByTestId("graphs-container");
-            expect(graphContainer.children.length).toEqual(1);
+        // Simulate creation of new expense
+        it("set expenses should be called properly when adding a new expense", () => {
+            // Retrieve donut perspective component
+            const donutPerspectiveMock = expensesCompMock
+            .findWhere(node => node.is(DonutPerspective));
+            // Check it's rendered properly
+            expect(donutPerspectiveMock.exists()).toBeTruthy();
+            // Get the new expense component and check if is rendered properly
+            const newExpenseMock = donutPerspectiveMock
+            .findWhere(node => node.is(NewExpense));
+            expect(newExpenseMock.exists()).toBeTruthy();
+            // Call create expense function
+            newExpenseMock.props().createExpense(newFakeExpense.expenseType, newFakeExpense.description,
+                newFakeExpense.amount,newFakeExpense.date);
+            expect(props.setExpenses).toBeCalled();
         });
     });
 });

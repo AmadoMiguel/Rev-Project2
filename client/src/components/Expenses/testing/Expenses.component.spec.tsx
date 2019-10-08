@@ -15,6 +15,7 @@ import reduxThunk from 'redux-thunk';
 import { BarLoader } from 'react-spinners';
 import * as expensesReduxConfig from './../../../redux/reducers/expenses.reducer';
 import * as expensesActions from './../../../redux/actions/expenses.actions';
+import { render } from '@testing-library/react';
 
 // Mock all required properties (redux) and axios calls
 // Mock the redux store with required middleware
@@ -150,14 +151,7 @@ describe("Testing <Expenses />", () => {
     describe("redux actions for expenses component should be called properly", () => {
         let store: any;
         let expensesCompMock:ShallowWrapper<IExpenseProps,any>;
-        let useEffect:any;
-        const mockUseEffect = () => {
-            useEffect.mockImplementationOnce((f:any) => f());
-        }
         beforeEach(() => {
-            useEffect = jest.spyOn(React, "useEffect");
-            mockUseEffect();
-            mockUseEffect();
             // Recall initial state from the expenses reducer in order to test actions
             store = createStore(props);
         });
@@ -183,8 +177,10 @@ describe("Testing <Expenses />", () => {
             ));
             expect(store.getActions()).toEqual(expectedActions);
         });
-        it("expenses total should be calculated when pre-rendering component", (done) => {    
-            
+        it("donut perspective should render properly", (done) => {    
+            const {getByTestId} = render(<Expenses {...props} />);
+            const graphContainer = getByTestId("graphs-container");
+            expect(graphContainer.children.length).toEqual(1);
         });
     });
 });

@@ -35,7 +35,7 @@ export function Expenses(props: IExpenseProps) {
   const [thisMonthGraphData, setThisMonthGraphData] = useState<any[]>();
   const [generalTableExpenses, setGeneralTableExpenses] = useState<Expense[]>();
   const [thisMonthTableExpenses, setThisMonthTableExpenses] = useState<Expense[]>();
-  const [expensesLabels, setExpenseLabels] = useState<string[]>();
+  const [expensesLabels, setExpenseLabels] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showTable, setShowTable] = useState<boolean>(false);
   const [showMonthly, setShowMonthly] = useState<boolean>(false);
@@ -97,24 +97,14 @@ export function Expenses(props: IExpenseProps) {
       setThisMonthGraphData([]);  
       setThisMonthTableExpenses([]);
     }
+    // Labels for the donut graph
+    if (!expensesLabels.length){
+      setExpenseLabels(props.userExpenses.expenseTypes.map((t: ExpenseType) => {
+      return t.type}));
+    }
     setIsLoading(false);
   }, [props.userExpenses.expenses, props.userExpenses.thisMonthExpenses, expenseType]);
 
-  useEffect(() => {
-    setSnackBar({
-      ...snackBar,
-      openDelete: false,
-      openUpdate: false,
-      openCreate: false,
-    })
-  });
-
-  useEffect(()=> {
-    // Labels for the donut graph
-    setExpenseLabels(props.userExpenses.expenseTypes.map((t: ExpenseType) => {
-      return t.type;
-    }));
-  });
 
   function handleCloseSnackBar() {
     setSnackBar({

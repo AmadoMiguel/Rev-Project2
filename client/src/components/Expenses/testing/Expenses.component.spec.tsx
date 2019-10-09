@@ -1,7 +1,7 @@
 import React from 'react';
 import Adapter from 'enzyme-adapter-react-16';
 import { configure, mount, shallow, ReactWrapper, ShallowWrapper } from 'enzyme';
-import axios from 'axios';
+import Axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import ExpensesComponent, { IExpenseProps, Expenses } from '../Expenses.component';
 import { User } from '../../../models/User';
@@ -125,7 +125,8 @@ const newFakeExpense:any = {
     amount: 100
 }
 // Mock axios module
-const mockAdapter = new MockAdapter(axios);
+jest.mock('axios');
+const mockedAxios = Axios as jest.Mocked<typeof Axios>;
 
 configure({adapter: new Adapter()});
 describe("Testing <Expenses />", () => {
@@ -164,7 +165,7 @@ describe("Testing <Expenses />", () => {
             expect(tablePerspMock.exists()).toBeFalsy();
         });
     });
-    describe("methods for expenses component should be called properly", () => {
+    describe("testing general expenses actions (CUD)", () => {
         let store: MockStoreEnhanced<IExpenseProps, any>;
         let expensesCompMock: ReactWrapper<IExpenseProps, any>;
         beforeEach(() => {
@@ -172,8 +173,11 @@ describe("Testing <Expenses />", () => {
             expensesCompMock = mount(<Provider store = {store}>
                                         <Expenses {...props}/>
                                     </Provider>);
-            mockAdapter.onPost('http://localhost:8765/expense-service/expense',newFakeExpense)
-            .reply(200, {...newFakeExpense, id: 3, user: userInfo});
+            mockedAxios.post.mockImplementationOnce(() =>
+                Promise.resolve({
+                data: { ...newFakeExpense, id:3, user:userInfo }
+                })
+            );
         });
         afterEach(() => {
             expensesCompMock.unmount();
@@ -184,7 +188,7 @@ describe("Testing <Expenses />", () => {
             .toHaveBeenCalledWith(props.userExpenses.thisMonthExpensesTotal);
         });
         // Simulate creation of new expense
-        it("set expenses should be called properly when adding a new expense", () => {
+        it("Axios.post should be called with the correct payload", () => {
             // Retrieve donut perspective component
             const donutPerspectiveMock = expensesCompMock
             .findWhere(node => node.is(DonutPerspective));
@@ -197,7 +201,11 @@ describe("Testing <Expenses />", () => {
             // Call create expense function
             newExpenseMock.props().createExpense(newFakeExpense.expenseType, newFakeExpense.description,
                 newFakeExpense.amount,newFakeExpense.date);
-            
+            // Axios post request should be called properly 
+            expect(mockedAxios.post).toHaveBeenCalledWith(
+                "http://localhost:8765/expense-service/expense",
+                { ...newFakeExpense }
+            );
         });
     });
 });

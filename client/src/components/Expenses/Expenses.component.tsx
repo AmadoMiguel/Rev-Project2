@@ -157,21 +157,23 @@ export function Expenses(props: IExpenseProps) {
             openCreate: true,
           })
           // Handle date conversion for the new expense
-          const newDateFormatted = new Date(payload.data.date).toISOString().slice(0, 10);
+          const newDateFormatted = new Date(payload.data.date);
           // Get the year
           payload.data.date = newDateFormatted;
           // Update arrays for properly visualize the new expense added
           if (props.userExpenses.expenses.length === 1 && 
             props.userExpenses.expenses[0].id === 0) {
-            props.setExpenses([payload.data]);
+              const newExpense:Expense = payload.data;
+            props.setExpenses([newExpense]);
           } else {
-            props.setExpenses(props.userExpenses.expenses.concat(payload.data));
+            const newExpense:Expense = payload.data;
+            props.setExpenses(props.userExpenses.expenses.concat(newExpense));
           }
           // Add it to the monthly expenses if the month of the new expense is the current month
           const currentMonth = new Date().getMonth();
           if (new Date(payload.data.date).getMonth() == currentMonth) {
-
-            props.setThisMonthExpenses(props.userExpenses.thisMonthExpenses.concat(payload.data));
+            const newExpense:Expense = payload.data;
+            props.setThisMonthExpenses(props.userExpenses.thisMonthExpenses.concat(newExpense));
           }
           // Get current date and a year ago date to see if the expense date fits in that time
           const currentDate = new Date();

@@ -156,7 +156,6 @@ export function Expenses(props: IExpenseProps) {
             openUpdate: false,
             openCreate: true,
           })
-          console.log("HELLO from Axios");
           // Handle date conversion for the new expense
           const newDateFormatted = new Date(payload.data.date);
           // Get the year

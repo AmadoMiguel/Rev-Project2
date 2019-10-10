@@ -20,6 +20,7 @@ import { render } from '@testing-library/react';
 import TablePerspective from '../TablePerspective';
 import NewExpense from './../NewExpenseDialog';
 import { TextField } from '@material-ui/core';
+import DonutGraph from '../../data/DonutGraph';
 
 // Mock all required properties (redux) and axios calls
 // Mock the redux store with required middleware
@@ -203,9 +204,18 @@ describe("Testing <Expenses />", () => {
                 newFakeExpense.amount,newFakeExpense.date);
             // Axios post request should be called properly 
             expect(mockedAxios.post).toHaveBeenCalledWith(
-                "http://localhost:8765/expense-service/expense",
-                { ...newFakeExpense }
+                "http://localhost:8765/expense-service/expense", newFakeExpense);
+        });
+        // Simulate deletion of an existing expense
+        it("Axios.delete should be called with the correct payload", () => {
+            // Retrieve donut perspective component
+            const donutPerspectiveMock = expensesCompMock
+            .findWhere(node => node.is(DonutPerspective));
+            // Find the doughnut and verify is being rendered properly
+            const donutGraphMock = donutPerspectiveMock.findWhere(
+                node => node.is(DonutGraph)
             );
+            expect(donutGraphMock.exists()).toBeTruthy();
         });
     });
 });
